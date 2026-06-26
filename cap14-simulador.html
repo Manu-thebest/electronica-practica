@@ -2,58 +2,328 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Cap 14 — Simulador Visual Buck</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 14 — Simulador Visual de Convertidor Buck</title>
 <link rel="stylesheet" href="css/style.css">
-<script src="js/app.js"></script>
+<script src="../js/app.js"></script>
+<style>
+.sim-container { background: #263238; border-radius: 8px; padding: 16px; margin: 14px 0; page-break-inside: avoid; }
+.sim-container canvas { background: #1a1a2e; border-radius: 4px; width: 100%; max-width: 600px; display: block; margin: 0 auto; }
+.sim-controls { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
+.sim-control { display: flex; flex-direction: column; align-items: center; min-width: 140px; }
+.sim-control label { color: #ccc; font-size: 9pt; margin-bottom: 4px; }
+.sim-control input[type="range"] { width: 140px; }
+.sim-value { color: #4fc3f7; font-weight: bold; font-size: 11pt; }
+.legend { display: flex; gap: 16px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+.legend-item { font-size: 9pt; color: #ccc; }
+.legend-color { display: inline-block; width: 12px; height: 3px; margin-right: 4px; vertical-align: middle; }
+</style>
 </head>
-<body>
+<body onload="initSim()">
 
-<div class="cover">
-  <div class="icon">🎮</div>
-  <h1>Capítulo 14</h1>
-  <h2>Simulador Visual de Buck</h2>
+<h1>Capítulo 14 — Simulador Visual de Convertidor Buck</h1>
+
+<div class="box box-info">
+<span class="box-title">🎯 Objetivo del capítulo</span>
+Este capítulo presenta un simulador interactivo del convertidor Buck (step-down) que visualiza en tiempo real las formas de onda clave: señal PWM de gate, corriente triangular del inductor, y voltaje de salida con rizado. Ajusta los parámetros y observa cómo cambia el comportamiento del circuito.
 </div>
 
-<h2>Simulación Interactiva</h2>
-<p>Observa cómo cambian las ondas del convertidor Buck al variar el duty cycle y el voltaje de salida.</p>
+<h2>14.1 Teoría Rápida del Convertidor Buck</h2>
 
-<div class="sim">
-  <canvas id="simCanvas"></canvas>
-  <div class="sim-controls">
-    <label>Duty: <input type="range" id="sim-duty" min="10" max="90" value="42" oninput="initSim()"></label>
-    <label>Vout (V): <input type="range" id="sim-vout" min="1" max="20" value="5"></label>
-    <label>fsw: <input type="range" id="sim-fsw" min="50" max="500" value="200"></label>
+<p>El convertidor Buck reduce un voltaje de entrada DC (V<sub>in</sub>) a un voltaje de salida DC menor (V<sub>out</sub>) mediante conmutación rápida de un transistor (MOSFET). La relación fundamental es:</p>
+
+<div class="formula">
+<div class="formula-box">V<sub>out</sub> = D × V<sub>in</sub></div>
+<div class="label">Donde D = Duty Cycle = t<sub>ON</sub> / T (0 ≤ D ≤ 1)</div>
+</div>
+
+<p>El inductor (L) y el capacitor de salida (C<sub>out</sub>) filtran la señal pulsante para obtener DC limpio. La frecuencia de conmutación (f<sub>sw</sub>) determina el tamaño de los componentes pasivos.</p>
+
+<div class="formula">
+<div class="formula-box">L<sub>min</sub> = (V<sub>in</sub> − V<sub>out</sub>) × D / (f<sub>sw</sub> × ΔI<sub>L</sub>)</div>
+<div class="label">Inductancia mínima para corriente continua (CCM)</div>
+</div>
+
+<div class="formula">
+<div class="formula-box">ΔV<sub>out</sub> = ΔI<sub>L</sub> / (8 × f<sub>sw</sub> × C<sub>out</sub>) + ΔI<sub>L</sub> × ESR</div>
+<div class="label">Rizado de voltaje de salida</div>
+</div>
+
+<h2>14.2 Simulador Interactivo</h2>
+
+<p>Usa los controles para ajustar los parámetros y observa cómo cambian las formas de onda en tiempo real.</p>
+
+<div class="sim-container">
+<canvas id="simCanvas"></canvas>
+<div class="legend">
+  <span class="legend-item"><span class="legend-color" style="background:#4fc3f7;"></span> PWM (Gate)</span>
+  <span class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> I<sub>L</sub> (Corriente inductor)</span>
+  <span class="legend-item"><span class="legend-color" style="background:#4caf50;"></span> V<sub>out</sub> (con rizado)</span>
+</div>
+<div class="sim-controls">
+  <div class="sim-control">
+    <label>Duty Cycle: <span class="sim-value" id="duty-val">50%</span></label>
+    <input type="range" id="sim-duty" min="10" max="90" value="50" oninput="updateSimLabel()">
   </div>
-  <button id="sim-update" style="margin-top:10px;padding:6px 20px;background:#4caf50;color:white;border:none;border-radius:4px;cursor:pointer;">Actualizar</button>
+  <div class="sim-control">
+    <label>Frecuencia: <span class="sim-value" id="fsw-val">100 kHz</span></label>
+    <input type="range" id="sim-fsw" min="10" max="500" value="100" oninput="updateSimLabel()">
+  </div>
+  <div class="sim-control">
+    <label>V<sub>out</sub>: <span class="sim-value" id="vout-val">5.0 V</span></label>
+    <input type="range" id="sim-vout" min="1" max="20" value="5" step="0.5" oninput="updateSimLabel()">
+  </div>
+</div>
+<div style="text-align:center; margin-top:10px;">
+  <button id="sim-update" style="background:#4fc3f7; color:#1a1a2e; border:none; padding:8px 20px; border-radius:4px; cursor:pointer; font-weight:bold;">⟳ Reiniciar Simulación</button>
+</div>
 </div>
 
-<h2>¿Qué muestra la simulación?</h2>
+<div class="box box-info">
+<span class="box-title">💡 Qué observar en el simulador</span>
+<ul>
+<li><strong>Señal PWM (azul):</strong> Onda cuadrada que controla el gate del MOSFET. Cuando está ALTO, el MOSFET conduce y el inductor se carga de energía.</li>
+<li><strong>Corriente del inductor (naranja):</strong> Forma de onda triangular. Sube cuando el MOSFET está ON (carga), baja cuando está OFF (descarga a través del diodo).</li>
+<li><strong>Voltaje de salida (verde):</strong> DC con pequeño rizado sinusoidal. El rizado aumenta con mayor corriente de carga y menor capacitancia.</li>
+</ul>
+</div>
+
+<h2>14.3 ¿Qué sucede cuando cambia el Duty Cycle?</h2>
+
+<p>El duty cycle es el parámetro de control principal del convertidor Buck. Comprender su efecto es fundamental para el diseño:</p>
+
+<h3>14.3.1 Aumentar el Duty Cycle (D → 1)</h3>
+
+<div class="box box-success">
+<span class="box-title">✓ Efecto: V<sub>out</sub> aumenta</span>
+<ul>
+<li><strong>V<sub>out</sub> = D × V<sub>in</sub></strong> → si D sube, V<sub>out</sub> sube proporcionalmente.</li>
+<li>El MOSFET permanece más tiempo en conducción (t<sub>ON</sub> más largo).</li>
+<li>La corriente del inductor sube más durante t<sub>ON</sub> → mayor ΔI<sub>L</sub> (pico a pico).</li>
+<li>El inductor almacena más energía por ciclo: E = ½LI².</li>
+<li><strong>Riesgo:</strong> Si D &gt; 0.9, el tiempo OFF es muy corto → el diodo de rueda libre no tiene tiempo de recuperación → picos de tensión y pérdidas.</li>
+<li><strong>Riesgo:</strong> El rizado de corriente puede exceder el límite de saturación del inductor → el inductor "satura" → cae su inductancia → corriente descontrolada → fallo del MOSFET.</li>
+</ul>
+</div>
+
+<h3>14.3.2 Disminuir el Duty Cycle (D → 0)</h3>
+
+<div class="box box-warning">
+<span class="box-title">⚠️ Efecto: V<sub>out</sub> disminuye</span>
+<ul>
+<li><strong>V<sub>out</sub> = D × V<sub>in</sub></strong> → si D baja, V<sub>out</sub> baja proporcionalmente.</li>
+<li>El MOSFET conduce menos tiempo → el inductor recibe menos energía por ciclo.</li>
+<li>La corriente del inductor puede volverse <strong>discontinua (DCM)</strong> si D es muy pequeño o la carga es ligera.</li>
+<li><strong>Modo DCM:</strong> La corriente del inductor llega a cero entre ciclos → el convertidor se comporta diferente (ganancia no lineal).</li>
+<li><strong>Riesgo:</strong> Si D &lt; 0.05, muchos controladores no pueden mantener regulación (tiempo ON mínimo limitado por propagación).</li>
+</ul>
+</div>
+
+<h3>14.3.3 Relación Duty ↔ Rizado</h3>
+
 <table>
-  <tr><th>Señal</th><th>Color</th><th>Descripción</th></tr>
-<tr><td>PWM Gate</td><td>Azul</td><td>Se±al de control del MOSFET</td></tr>
-<tr><td>IL (Corriente L)</td><td>Naranja</td><td>Corriente triangular en el inductor</td></tr>
-<tr><td>Vout</td><td>Verde</td><td>Voltaje de salida con ripple</td></tr>
+<thead>
+<tr><th>Duty Cycle</th><th>ΔI<sub>L</sub> (rizado corriente)</th><th>Modo operación</th><th>Estabilidad</th></tr>
+</thead>
+<tbody>
+<tr><td>D = 0.5</td><td>Mínimo (óptimo)</td><td>CCM</td><td>⭐⭐⭐ Mejor caso</td></tr>
+<tr><td>D &lt; 0.3</td><td>Grande (relativo)</td><td>DCM posible</td><td>⭐⭐ Puede oscilar</td></tr>
+<tr><td>D &gt; 0.7</td><td>Grande (relativo)</td><td>CCM</td><td>⭐⭐ Cuidado con saturación</td></tr>
+<tr><td>D → 0 o D → 1</td><td>Máximo</td><td>DCM/CCM límite</td><td>⭐ Difícil control</td></tr>
+</tbody>
 </table>
 
-<h2>Efectos del Duty Cycle</h2>
-<div class="box box-info">
-  <span class="box-title">💡 Experimenta</span>
-  <ul>
-    <li>Duty 50%, Vin=12V → Vout ≈ 6V</li>
-    <li>Duty 0% → Vout = 0V (MOSFET apagado)</li>
-    <li>Frequency 500kHz ≈ filtro más pequeño necesario</li>
-  </ul>
+<div class="formula">
+<div class="formula-box">ΔI<sub>L</sub> = (V<sub>in</sub> − V<sub>out</sub>) × D / (f<sub>sw</sub> × L) = V<sub>out</sub> × (1 − D) / (f<sub>sw</sub> × L)</div>
+<div class="label">Rizado de corriente del inductor — mínimo cuando D = 0.5</div>
 </div>
 
-<h2>Resumen y Errores Comunes</h2>
-<div class="box box-danger">
-  <span class="box-title">⚠️ Errores en simulación vs realidad</span>
-  <ol>
-    <li>La simulación no captura transitorios de conmutación (pérdidas de MOSFET)</li>
-    <li>No considera ESR de condensadores (causa mÁs ripple medido)</li>
-    <li>Inductancia parásita de PCB puede causar oscilaciones</li>
-  </ol>
+<h3>14.3.4 Efecto de la Frecuencia de Conmutación</h3>
+
+<p>La frecuencia f<sub>sw</sub> afecta inversamente el tamaño de los componentes y las pérdidas:</p>
+
+<ul>
+<li><strong>f<sub>sw</sub> alta (&gt;500kHz):</strong> Inductor y capacitor más pequeños, pero pérdidas de conmutación mayores (P<sub>sw</sub> = ½ × V × I × (t<sub>r</sub>+t<sub>f</sub>) × f<sub>sw</sub>).</li>
+<li><strong>f<sub>sw</sub> baja (&lt;100kHz):</strong> Componentes más grandes, pérdidas menores, pero posible audible noise (zumbido del inductor).</li>
+<li><strong>Rango óptimo práctico:</strong> 100-500 kHz para la mayoría de aplicaciones.</li>
+</ul>
+
+<h2>14.4 Ejercicio Práctico con el Simulador</h2>
+
+<ol class="steps">
+<li><strong>Configuración inicial:</strong> Duty=50%, f<sub>sw</sub>=100kHz, V<sub>out</sub>=5V. Observa la forma de onda triangular simétrica del inductor.</li>
+<li><strong>Aumenta Duty a 70%:</strong> La señal PWM pasa más tiempo en ALTO. La corriente del inductor sube más rápido que baja → triangular asimétrica con pendiente de subida mayor.</li>
+<li><strong>Reduce Duty a 30%:</strong> Ahora el MOSFET conduce poco tiempo. La corriente sube poco y baja más lentamente.</li>
+<li><strong>Cambia frecuencia a 200kHz:</strong> El período se reduce a la mitad → más ciclos en la misma ventana visual. El rizado de corriente se reduce (menor ΔI<sub>L</sub>).</li>
+<li><strong>Observa V<sub>out</sub>:</strong> El rizado verde cambia con duty y frecuencia. A D=50% el rizado es mínimo.</li>
+</ol>
+
+<h2>14.5 Diseño Práctico: Buck 12V → 5V @ 2A</h2>
+
+<p>Aplicando lo aprendido, diseñemos un convertidor real:</p>
+
+<div class="calc">
+<h4>📐 Cálculo de componentes — Buck 12V→5V @ 2A</h4>
+<div class="calc-row">
+  <label>V<sub>in</sub> = 12V, V<sub>out</sub> = 5V, I<sub>out</sub> = 2A, f<sub>sw</sub> = 150kHz</label>
 </div>
+<div class="calc-result">
+  <div class="value">D = V<sub>out</sub>/V<sub>in</sub> = 5/12 = <strong>41.7%</strong></div>
+  <div class="value">ΔI<sub>L</sub> (30% de I<sub>out</sub>) = 0.6A → L = (12−5)×0.417/(150k×0.6) = <strong>32.4 µH → usar 33 µH</strong></div>
+  <div class="value">I<sub>L,pico</sub> = 2 + 0.3 = <strong>2.3A</strong> → Inductor con I<sub>sat</sub> ≥ 3A</div>
+  <div class="value">C<sub>out</sub> = 0.6/(8×150k×0.05) = <strong>10 µF mínimo → usar 22µF/10V cerámica</strong></div>
+  <div class="value">V<sub>out</sub> rizado ≈ 0.6/(8×150k×22µ) + 0.6×0.02 = <strong>23mV + 12mV ≈ 35mV pp</strong></div>
+</div>
+</div>
+
+<div class="box box-success">
+<span class="box-title">✓ Componentes recomendados para este diseño</span>
+<ul>
+<li><strong>IC:</strong> MP1584EN (f<sub>sw</sub>=1.5MHz, 3A) o LM2596-5.0 (f<sub>sw</sub>=150kHz, 3A)</li>
+<li><strong>L1:</strong> 33µH, I<sub>sat</sub> ≥ 3A (Bourns SRR1260A-330M o similar)</li>
+<li><strong>C<sub>in</sub>:</strong> 2× 10µF/25V MLCC X7R (cerámica, baja ESR)</li>
+<li><strong>C<sub>out</sub>:</strong> 2× 22µF/10V MLCC X5R (baja ESR crítico)</li>
+<li><strong>D1:</strong> SS34 (Schottky 3A 40V) — diodo de rueda libre</li>
+</ul>
+</div>
+
+<h2>14.6 Modos de Operación: CCM vs DCM</h2>
+
+<p>El convertidor Buck puede operar en dos modos según la corriente del inductor:</p>
+
+<table>
+<thead>
+<tr><th>Característica</th><th>CCM (Conducción Continua)</th><th>DCM (Conducción Discontinua)</th></tr>
+</thead>
+<tbody>
+<tr><td>Definición</td><td>I<sub>L</sub> nunca llega a cero</td><td>I<sub>L</sub> llega a cero entre ciclos</td></tr>
+<tr><td>Condición</td><td>I<sub>out</sub> &gt; ΔI<sub>L</sub>/2</td><td>I<sub>out</sub> &lt; ΔI<sub>L</sub>/2</td></tr>
+<tr><td>Ganancia (V<sub>out</sub>/V<sub>in</sub>)</td><td>= D (lineal)</td><td>&gt; D (no lineal, depende de L, f, R<sub>load</sub>)</td></tr>
+<tr><td>Rizado V<sub>out</sub></td><td>Menor</td><td>Mayor</td></tr>
+<tr><td>Regulación</td><td>Mejor (respuesta predecible)</td><td>Peor (ganancia varía con carga)</td></tr>
+<tr><td>Eficiencia</td><td>Mejor a carga media-alta</td><td>Mejor a carga muy ligera</td></tr>
+<tr><td>Aplicación</td><td>Cargas &gt;10% de I<sub>max</sub></td><td>Cargas ligeras, standby</td></tr>
+</tbody>
+</table>
+
+<div class="box box-info">
+<span class="box-title">💡 Tip de diseño</span>
+<p>Diseña SIEMPRE para CCM a corriente de carga mínima esperada. Si tu carga puede caer a 10mA pero el convertidor está diseñado para 2A, operará en DCM a carga ligera — esto es normal y aceptable. Muchos ICs modernos tienen "pulse-skipping" o "burst mode" para manejar DCM eficientemente.</p>
+</div>
+
+<h2>14.7 Pérdidas y Eficiencia en el Buck</h2>
+
+<p>La eficiencia de un Buck real nunca es 100%. Las principales fuentes de pérdida son:</p>
+
+<table>
+<thead>
+<tr><th>Fuente de pérdida</th><th>Fórmula</th><th>Magnitud típica</th></tr>
+</thead>
+<tbody>
+<tr><td>Conducción MOSFET (R<sub>DS(on)</sub>)</td><td>P = I<sub>RMS</sub>² × R<sub>DS(on)</sub></td><td>0.1-0.5W @ 2A</td></tr>
+<tr><td>Conmutación MOSFET</td><td>P = ½×V×I×(t<sub>r</sub>+t<sub>f</sub>)×f<sub>sw</sub></td><td>0.05-0.3W</td></tr>
+<tr><td>Diodo (V<sub>F</sub>)</td><td>P = V<sub>F</sub> × I<sub>avg</sub> × (1−D)</td><td>0.3-0.7W (Schottky)</td></tr>
+<tr><td>ESR inductor (DCR)</td><td>P = I<sub>RMS</sub>² × DCR</td><td>0.05-0.2W</td></tr>
+<tr><td>Gate drive</td><td>P = Q<sub>g</sub> × V<sub>GS</sub> × f<sub>sw</sub></td><td>0.01-0.05W</td></tr>
+<tr><td>IC quiescent</td><td>P = V<sub>in</sub> × I<sub>q</sub></td><td>0.005-0.02W</td></tr>
+</tbody>
+</table>
+
+<div class="formula">
+<div class="formula-box">η = P<sub>out</sub> / (P<sub>out</sub> + P<sub>losses</sub>) × 100%</div>
+<div class="label">Eficiencia típica Buck: 85-95%</div>
+</div>
+
+<!-- ============================ RESUMEN ============================ -->
+<h1 id="resumen">14.8 Resumen</h1>
+
+<table>
+<thead>
+<tr><th>Concepto</th><th>Fórmula / Dato</th><th>Importancia</th></tr>
+</thead>
+<tbody>
+<tr><td>Relación fundamental</td><td>V<sub>out</sub> = D × V<sub>in</sub></td><td>Base del control Buck</td></tr>
+<tr><td>Duty Cycle</td><td>D = t<sub>ON</sub> / T = V<sub>out</sub>/V<sub>in</sub></td><td>Parámetro de control principal</td></tr>
+<tr><td>Rizado corriente L</td><td>ΔI<sub>L</sub> = (V<sub>in</sub>−V<sub>out</sub>)×D/(f×L)</td><td>Mínimo en D=0.5</td></tr>
+<tr><td>Rizado voltaje out</td><td>ΔV = ΔI/(8fC) + ΔI×ESR</td><td>ESR domina a alta f</td></tr>
+<tr><td>CCM vs DCM</td><td>CCM: I<sub>L</sub> &gt; ΔI/2 siempre</td><td>CCM = lineal, predecible</td></tr>
+<tr><td>Eficiencia</td><td>85-95% típico</td><td>Pérdidas: conmutación + conducción + ESR</td></tr>
+<tr><td>f<sub>sw</sub></td><td>100-500 kHz óptimo</td><td>Mayor f = componentes pequeños, más pérdidas</td></tr>
+</tbody>
+</table>
+
+<div class="box box-info">
+<span class="box-title">💡 Puntos clave para recordar</span>
+<ul>
+<li><strong>Duty cycle controla V<sub>out</sub>:</strong> Más duty = más voltaje. Es la perilla de ajuste del convertidor.</li>
+<li><strong>D=0.5 es óptimo:</strong> El rizado de corriente es mínimo cuando duty = 50%. Diseña cerca de este punto si es posible.</li>
+<li><strong>El inductor es el corazón:</strong> Almacena y libera energía cada ciclo. Su valor determina el rizado de corriente.</li>
+<li><strong>ESR importa más que C a alta f:</strong> Un capacitor de 100µF con ESR=2Ω peor que uno de 10µF con ESR=10mΩ a 500kHz.</li>
+<li><strong>El simulador es tu aliado:</strong> Antes de armar hardware, simula. Ver las formas de onda te da intuición que las fórmulas solas no dan.</li>
+</ul>
+</div>
+
+<!-- ============================ ERRORES COMUNES ============================ -->
+<h1 id="errores">14.9 Errores Comunes</h1>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 1: Olvidar que V<sub>out</sub> = D × V<sub>in</sub> es ideal</span>
+<p><strong>Problema:</strong> Calculas D = 5/12 = 41.7% esperando exactamente 5.00V, pero mides 4.7V.</p>
+<p><strong>Solución:</strong> La fórmula ideal ignora la caída del diodo (V<sub>F</sub> ≈ 0.3-0.5V en Schottky), la R<sub>DS(on)</sub> del MOSFET, y la DCR del inductor. La relación real es: V<sub>out</sub> ≈ D×(V<sub>in</sub> − V<sub>losses</sub>) − V<sub>F</sub>×(1−D) − I×DCR. Para precisión, usa el datasheet del IC que incluye estos factores.</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 2: Usar inductor con I<sub>sat</sub> insuficiente</span>
+<p><strong>Problema:</strong> El inductor "satura" (pierde inductancia) cuando la corriente pico excede I<sub>sat</sub>. La corriente se dispara, el MOSFET se sobrecalienta, el IC entra en protección.</p>
+<p><strong>Solución:</strong> Calcula I<sub>pico</sub> = I<sub>out</sub> + ΔI<sub>L</sub>/2. Selecciona inductor con I<sub>sat</sub> ≥ 1.3 × I<sub>pico</sub> (margen 30%). Para 2A con ΔI=0.6A: I<sub>pico</sub>=2.3A → I<sub>sat</sub> ≥ 3A. Nunca uses I<sub>rated</sub> (térmica) como límite — usa I<sub>sat</sub> (eléctrica).</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 3: No colocar C<sub>in</sub> cerca del IC</span>
+<p><strong>Problema:</strong> El capacitor de entrada está a 5cm del IC en la PCB. Las pistas tienen inductancia → picos de tensión en V<sub>in</sub> durante conmutación → el IC se resetea o falla.</p>
+<p><strong>Solución:</strong> C<sub>in</sub> debe estar a &lt;5mm del pin VIN del IC. Usa capacitor cerámico (baja ESR) directamente entre VIN y GND. Si usas capacitor electrolítico, pon uno cerámico en paralelo para alta frecuencia.</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 4: Operar en DCM sin saberlo</span>
+<p><strong>Problema:</strong> Diseñas para 2A pero el dispositivo opera a 50mA la mayor parte del tiempo. El convertidor entra en DCM → rizado enorme → la MCU se resetea aleatoriamente.</p>
+<p><strong>Solución:</strong> Verifica que I<sub>out,min</sub> &gt; ΔI<sub>L</sub>/2 para mantener CCM. Si la carga es muy variable, usa un IC con "burst mode" o "pulse skipping" que maneja DCM eficientemente. O añade una carga ficticia (dummy load) pequeña para mantener CCM.</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 5: Ignorar el diodo de rueda libre</span>
+<p><strong>Problema:</strong> Olvidas el diodo Schottky en paralelo con el inductor (o usas 1N4007 lento). Cuando el MOSFET se apaga, la corriente del inductor no tiene camino → pico de tensión de decenas de voltajes → destruye el MOSFET.</p>
+<p><strong>Solución:</strong> SIEMPRE usa un diodo Schottky (rápido, baja V<sub>F</sub>) como diodo de rueda libre (freewheeling). El 1N4007 es demasiado lento (tiempo de recuperación ~30µs) para conmutación &gt;20kHz. Usa SS34, 1N5819 o similar.</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 6: Pensar que más frecuencia es siempre mejor</span>
+<p><strong>Problema:</strong> Subes f<sub>sw</sub> a 2MHz para usar inductor diminuto. Pero las pérdidas de conmutación se cuadruplican → eficiencia cae a 60% → el disipador es más grande que el inductor que ahorraste.</p>
+<p><strong>Solución:</strong> Balancea. Para la mayoría de diseños, 100-500kHz es óptimo. Solo sube a &gt;1MHz si el tamaño es crítico y aceptas menor eficiencia. Las pérdidas de conmutación crecen linealmente con f<sub>sw</sub>: P<sub>sw</sub> ∝ f.</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 7: No verificar la respuesta transitoria</span>
+<p><strong>Problema:</strong> El Buck funciona bien en DC, pero cuando la carga cambia bruscamente (MCU pasa de sleep a active), V<sub>out</sub> cae 500mV y resetea el sistema.</p>
+<p><strong>Solución:</strong> La respuesta transitoria depende del ancho de banda del lazo de control y de C<sub>out</sub>. Añade más capacitancia de salida o un capacitor de baja ESR. Verifica con carga escalón (electronic load o MOSFET + resistor). El tiempo de recuperación debe ser &lt;100µs para MCUs modernos.</p>
+</div>
+
+<div class="box box-danger">
+<span class="box-title">❌ Error 8: Confundir duty cycle con duty ratio en control</span>
+<p><strong>Problema:</strong> En el datasheet del IC dice "maximum duty cycle = 95%" pero tú necesitas D=98% para tu aplicación (V<sub>in</sub>=5.1V, V<sub>out</sub>=5V). El IC no puede → V<sub>out</sub> cae bajo carga.</p>
+<p><strong>Solución:</strong> Verifica el D<sub>max</sub> del IC. Si necesitas D muy alto (V<sub>in</sub> ≈ V<sub>out</sub>), considera un LDO en lugar de Buck, o un Buck-Boost. El D<sub>max</sub> limitado existe por el tiempo de blanking interno del IC (detección de corriente).</p>
+</div>
+
+<script>
+function updateSimLabel() {
+  const duty = document.getElementById('sim-duty').value;
+  const fsw = document.getElementById('sim-fsw').value;
+  const vout = document.getElementById('sim-vout').value;
+  document.getElementById('duty-val').textContent = duty + '%';
+  document.getElementById('fsw-val').textContent = fsw + ' kHz';
+  document.getElementById('vout-val').textContent = parseFloat(vout).toFixed(1) + ' V';
+}
+</script>
 
 </body>
 </html>
