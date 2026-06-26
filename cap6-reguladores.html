@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cap 6 — Reguladores Lineales</title>
+<link rel="stylesheet" href="css/style.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<div class="cover">
+  <div class="icon">�️</div>
+  <h1>Capítulo 6</h1>
+  <h2>Reguladores Lineales</h2>
+</div>
+
+<div class="toc">
+  <h2>📋 Índice — Capítulo 6</h2>
+  <ul>
+    <li><a href="#sec6-1"><span class="num">6.1</span> Regulador con Diodo Zener</a></li>
+    <li><a href="#sec6-2"><span class="num">6.2</span> Reguladores 78xx / 79xx</a></li>
+    <li><a href="#sec6-3"><span class="num">6.3</span> Regulador Ajustable LM317</a></li>
+    <li><a href="#sec6-4"><span class="num">6.4</span> LDO (Low Dropout)</a></li>
+    <li><a href="#sec6-5"><span class="num">6.5</span> Disipación y Disipadores</a></li>
+    <li><a href="#resumen"><span class="num">6.R</span> Resumen y Errores Comunes</a></li>
+  </ul>
+</div>
+
+<h2 id="sec6-1">6.1 Regulador con Diodo Zener</h2>
+<p>El método más simple: un limitador de voltaje con diodo Zener + resistencia serie.</p>
+
+<h4>Condiciones de diseño:</h4>
+<div class="steps">
+  <li>$V_{in(min)} > V_Z$ (siempre) + caída Rs</li>
+  <li>$I_{Z(min)} > I_{Z(knee)}$ (~1-5mA según modelo)</li>
+  <li>$I_Z + I_L \le I_{Z(max)} = P_Z/V_Z$</li>
+</div>
+
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle R_S = \frac{V_{in}-V_Z+I_L}$</strong></div>
+</div>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle P_{Zener} = V_Z \times I_{Z(max)}$</strong></div>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Potencia en Rs</span>
+  $P_{Rs} = (V_{in}-V_Z)^2 / R_S$. Con $V_{in}=12V$, $V_Z=5V$, $R_S=100\Omega$:<br>
+  $P_{Rs} = 49/100 = 0.49W$ → usar resistor de 1W mínimo.
+</div>
+
+<h2 id="sec6-2">6.2 Reguladores 78xx / 79xx</h2>
+<p>Reguladores fijos de 3 terminales: entrada-salida-tierra.</p>
+<table>
+  <tr><th>Modelo</th><th>Vout</th><th>Corriente máx</th><th>Dropout típico</th></tr>
+  <tr><td>7805</td><td>5V</td><td>1A</td><td>2V</td></tr>
+  <tr><td>7809</td><td>9V</td><td>1A</td><td>2V</td></tr>
+  <tr><td>7812</td><td>12V</td><td>1A</td><td>2V</td></tr>
+815</td><td>15V</td><td>1A</td><td>2V</td></tr>
+  <tr><td>7824</td><td>24V</td><td>1A</td><td>2V</td></tr>
+  <tr><td>7905</td><td>-5V</td><td>1A</td><td>2V</td></tr>
+  <tr><td>7912</td><td>-12V</td><td>1A</td><td>2V</td></tr>
+</table>
+
+<h4>Eficiencia:</h4>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle \eta = \frac{V_{out}}{V_{in}} \times 100\%$</strong></div>
+</div>
+<div class="box box-warning">
+  <span class="box-title">⚠️ Eficiencia terrible</span>
+  Con 7805 y $V_{in}=12V$: $\eta = 5/12 = 41.7\%$. ¡El 58% se convierte en calor!
+</div>
+
+<h2 id="sec6-3">6.3 Regulador Ajustable LM317</h2>
+<p>Voltaje ajustable entre 1.25V y 37V con dos resistencias.</p>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{out} = V_{ref}\left(1+\frac{R_2}{R_1}\right) + I_{adj}\cdot R_2$</strong></div>
+  <div class="label">$V_{ref} = 1.25V$, $I_{adj} \approx 50\mu A$</div>
+</div>
+<div class="box box-info">
+  <span class="box-title">� Diseño típico</span>
+  • $R_1 = 240\Omega$ (fijo, entre OUT y ADJ)<br>
+  • $R_2$ variable (potenciómetro 5k): $V_{out}=1.25(1+R_2/240)$<br>
+  • Con $R_2=2.4k\Omega$ → $V_{out}=13.75V$<br>
+  • Con $R_2=1.2k\Omega$ → $V_{out}=7.5V$
+</div>
+
+<h2 id="sec6-4">6.4 LDO (Low Dropout)</h2>
+<p>Funcionan con muy poca diferencia entrada-salida (50-500mV).</p>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{in(min)} = V_{out} + V_{dropout}$</strong></div>
+  <div class="label">Dropout típico LDO: 100-300mV (vs 2-3V de 78xx)</div>
+</div>
+<table>
+  <tr><th>LDO</th><th>Vout</th><th>Imax</th><th>Dropout (1A)</th><th>Iq</th></tr>
+  <tr><td>AMS1117</td><td>3.3/5V</td><td>1A</td><td>1.15V</td><td>5mA</td></tr>
+  <tr><td>MCP1700</td><td>3.0V</td><td>250mA</td><td>178mV</td><td>1.6µA</td></tr>
+  <tr><td>LM2940</td><td>5V</td><td>1.25A</td><td>0.5V</td><td>10mA</td></tr>
+  <tr><td>TPS7A驿033</td><td>3.3V</td><td>200mA</td><td>150mV</td><td>1µA</td></tr>
+</table>
+<div class="box box-success">
+  <span class="box-title">� ¿Cuándo usar LDO?</span>
+  Cuando $V_{in} \approx V_{out}$. Ejemplo: batería Li-Ion (3.0-4.2V) alimentando 3.3V. Ahorra energía vs regulador estándar.
+</div>
+
+<h2 id="sec6-5">6.5 Disipación y Disipadores</h2>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle P_{diss} = (V_{in}-V_{out}) \times I_{out} + V_{in} \times I_q$</strong></div>
+</div>
+<p>Para diseños de alta potencia, se necesita disipador de calor.</p>
+<div class="formula-box">
+$\displaystyle R_{th,hs} = \frac{T_{j(max)}-T_{amb}}{P_{diss}} - R_{th,jc} - R_{th,cs}$
+</div>
+<div class="box box-info">
+  <span class="box-title">💡 Valores típicos</span>
+  • TO-220 sin disipador: $R_{th,ja} \approx 65°C/W$<br>
+  • Con disipador TO-220: $R_{th,ja} \approx 5-30°C/W$<br>
+  • $T_{j(max)}$ típ: 125°C – 150°C
+</div>
+<div class="box box-danger">
+  <span class="box-title">⚠️ ¡Riesgo de quemar!</span>
+  Si $V_{in}=12V$, $V_{out}=5V$, $I=0.5A$: $P_{diss} = 3.5W$. Sin disipador: $\Delta T = 3.5 \times 65 = 227°C$ → ¡FUEGO!
+</div>
+
+<h2 id="resumen">6.R Resumen y Errores Comunes</h2>
+<table>
+  <tr><th>Regulador</th><th>Ventaja</th><th>Desventaja</th></tr>
+<tr><td>Zener</td><td>Muy simple, barato</td><td>Baja corriente, mucha calor</td></tr>
+<tr><td>78xx</td><td>Fácil, robusto</td><td>Eficiencia <50%</td></tr>
+<tr><td>LM317</td><td>Ajustable</td><td>Necesita 2 resistencias</td></tr>
+<tr><td>LDO</td><td>Bajo dropout, eficiente</td><td>Corriente limitada</td></tr>
+</table>
+<div class="box box-danger">
+  <span class="box-title">⚠️ Errores comunes</span>
+  <ol>
+    <li>Olvidar condensador de entrada (10µF) en reguladores 78xx</li>
+    <li>Usar LDO con $V_{in}-V_{out} >$ voltaje máximo</li>
+    <li>No calcular disipador para corrientes >200mA con gran diferencia V</li>
+    <li>Colocar regulador lejos de carga → inestabilidad</li>
+  </ol>
+</div>
+
+</body>
+</html>

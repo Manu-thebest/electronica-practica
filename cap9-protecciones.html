@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cap 9 — Circuitos de Protección</title>
+<link rel="stylesheet" href="css/style.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<div class="cover">
+  <div class="icon">🛡️</div>
+  <h1>Capítulo 9</h1>
+  <h2>Circuitos de Protección</h2>
+</div>
+
+<div class="toc">
+  <h2>� Índice — Capítulo 9</h2>
+  <ul>
+    <li><a href="#sec9-1"><span class="num">9.1</span> Diodos TVS</a></li>
+    <li><a href="#sec9-2"><span class="num">9.2</span> Fusibles y PTC</a></li>
+    <li><a href="#sec9-3"><span class="num">9.3</span> Protección de Polaridad</a></li>
+    <li><a href="#sec9-4"><span class="num">9.4</span> Diodo Flyback (Rueda Libre)</a></li>
+    <li><a href="#sec9-5"><span class="num">9.5</span> OVP/UVP (Over/Under Voltage Protection)</a></li>
+    <li><a href="#sec9-6"><span class="num">9.6</span> UVLO (Under Voltage Lock Out)</a></li>
+    <li><a href="#resumen"><span class="num">9.R</span> Resumen y Errores Comunes</a></li>
+  </ul>
+</div>
+
+<h2 id="sec9-1">9.1 Diodos TVS (Transient Voltage Suppressor)</h2>
+<p>Absorben picos de voltaje transitorios (ESD, rayos, inductancias).</p>
+<table>
+  <tr><th>Parámetro</th><th>Símbolo</th><th>Descripción</th></tr>
+<tr><td>Voltaje de ruptura</td><td>$V_{BR}$</td><td>Donde empieza a conducir (~1mA)</td></tr>
+<tr><td>Voltaje de clamping</td><td>$V_C$</td><td>Voltaje máximo bajo pulso (IPP)</td></tr>
+<tr><td>Corriente de pico</td><td>$I_{PP}$</td><td>Corriente máxima pulsos (10/1000μs)</td></tr>
+<tr><td>Potencia</td><td>$P_{PP}$</td><td>$V_C \times I_{PP}$ (600W – 15kW típico)</td></tr>
+</table>
+<div class="box box-info">
+  <span class="box-title">� Selección TVS</span>
+  $V_{RMW}$ ≥ $V_{operación}$<br>
+  $V_{BR}$ ≥ $1.2 \times V_{operación}$<br>
+  $V_C$ < $V_{max}$ de componente protegido
+</div>
+
+<h2 id="sec9-2">9.2 Fusibles y PTC</h2>
+<h4>Fusibles:</h4>
+<table>
+  <tr><th>Parámetro</th><th>Criterio</th></tr>
+<tr><td>$I_{rated}$</td><td>$I_{rated} \geq 1.5 \times I_{max,normal}$ (margen)</td></tr>
+<tr><td>$I²t</td><td>Debe soportar el pico de encendido (inrush)</td></tr>
+<tr><td>$V_{rated}$</td><td>≥ $V_{circuito}$ (AC o DC)</td></tr>
+<tr><td>Velocidad</td><td>Fast-blow (cargas DC) / Slow-blow (motores, transformadores)</td></tr>
+</table>
+
+<h4>PTC (Resettable):</h4>
+<p>Polímero que aumenta drásticamente su resistencia con temperatura y corriente.</p>
+<div class="box box-info">
+  <span class="box-title">� Cuándo usar PTC vs fusible</span>
+  • PTC: resettable, buena para sobrecargas intermitentes (motores, USB)<br>
+  • Fusible: barato, más rápido en cortocircuito, falla-definitiva
+</div>
+
+<h2 id="sec9-3">9.3 Protección de Polaridad</h2>
+<table>
+  <tr><th>Método</th><th>Componente</th><th>Ventaja</th><th>Desventaja</th></tr>
+<tr><td>Serie</td><td>Diodo 1N4007</td><td>Simple</td><td>0.7V caída, disipación</td></tr>
+<tr><td>P-MOSFET</td><td>IRF9540</td><td>< 0.1V caída</td><td>Más caro</td></tr>
+<tr><td>TPD4E</td><td>TVS array</td><td>ESD + polaridad</td><td>Corriente limitada</td></tr>
+</table>
+<div class="box box-success">
+  <span class="box-title">🎯 Protección perfecta con P-MOSFET</span>
+  Source → Vin, Gate → GND, Drain → Vout. Se activa solo si polaridad correcta. Caída = $I_{load} \times R_{DS(on)}$.
+</div>
+
+<h2 id="sec9-4">9.4 Diodo Flyback (Rueda Libre)</h2>
+<p>Esencial con cargas inductivas (motores, relés, solenoides). Absorbe el pico de voltaje cuando el interruptor se abre.</p>
+<div class="formula-box">
+$V_{peak} = V_{cc} + L\frac{dI}{dt}$
+</div>
+<div class="box box-danger">
+  <span class="box-title">⚠️ ¡OBLIGATORIO!</span>
+  Sin diodo flyback, un MOSFET de conducción de relé se destruye en segundos. $V_{DS}$ puede alcanzar 60-200V en el "off" instantáneo.
+</div>
+<h4>Selección:</h4>
+<ul>
+  <li>$V_R \ge 2 \times V_{cc}$ (margen de seguridad)</li>
+  <li>$I_F \ge I_{carga}$</li>
+  <li>Recuperación: Schottky (SS34, B340A) para fuentes conmutadas; 1N4007 para DC lento (&lt;1A)</li>
+</ul>
+
+<h2 id="sec9-5">9.5 OVP / UVP</h2>
+<p>Protege contra sobrevoltaje (cargador defectuoso) y subtensión (batería descargada).</p>
+<div class="formula-box">
+$V_{OVP} = V_{ref}\left(1+\frac{R_1}{R_2}\right)$
+</div>
+<div class="box box-info">
+  <span class="box-title">� Aplicación: Batería Li-Ion</span>
+  • OVP: 4.25V (cortar carga)<br>
+  • UVP: 3.0V (cortar descarga)<br>
+  • Usar comparadores de precisión (TL431 + LM393) para ±10mV</li>
+</div>
+
+<h2 id="sec9-6">9.6 UVLO (Under Voltage Lock Out)</h2>
+<div class="formula-box">
+$V_{UVLO,on} = V_{ref}\frac{R_1+R_2}{R_2}$<br>
+$V_{UVLO,off} = V_{ref}\frac{R_1+R_2}{R_2} - V_H \frac{R_1}{R_1+R_2}$
+</div>
+<p>Un circuito UVLO evita que un sistema opere con voltaje bajo e inestable (lógica errónea, EEPROM corrupta).</p>
+<div class="box box-success">
+  <span class="box-title">� Diferenciador RC</span>
+  Para UVLO limpia sin rebotes: $R_3 = 100k\Omega$ de Q1 a gate, $C_1 = 1\mu F$ de gate a GND.
+</div>
+
+<h2 id="resumen">9.R Resumen y Errores Comunes</h2>
+<table>
+  <tr><th>Protección</th><th>Componente clave</th><th>Fórmula/Criterio</th></tr>
+<tr><td>Voltaje transitorio</td><td>TVS</td><td>$V_C < V_{max}$</td></tr>
+<tr><td>Corriente</td><td>Fuse</td><td>$I_{rated} > 1.5I_{max}$</td></tr>
+<tr><td>Polaridad</td><td>P-MOSFET</td><td>$R_{DS(on)}$ mínima</td></tr>
+<tr><td>Inductancia</td><td>Flyback</td><td>$I_{F} \ge I_L$, $V_R \ge 2V_{cc}$</td></tr>
+<tr><td>Batería</td><td>OVP/UVP</td><td>TL431 + comparador</td></tr>
+<tr><td>Lógica</td><td>UVLO</td><td>Histeresis 0.2-0.5V</td></tr>
+</table>
+
+<div class="box box-danger">
+  <span class="box-title">⚠️ Errores comunes</span>
+  <ol>
+    <li>Olvidar diodo flyback en circuitos con relés</li>
+    <li>TVS con $V_{BR}$ muy bajo (se activa en operación normal)</li>
+    <li>Fusible rápido en circuito con inrush alto (motor arrancando)</li>
+    <li>No proteger USB con TVS (ESD destruye puerto)</li>
+  </ol>
+</div>
+
+</body>
+</html>

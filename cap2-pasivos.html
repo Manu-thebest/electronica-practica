@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 2 — Componentes Pasivos | Electrónica Práctica</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+</head>
+<body>
+
+<h1>Capítulo 2 — Componentes Pasivos</h1>
+
+<h2>2.1 Resistencias</h2>
+
+<p>La resistencia es un componente que se opone al paso de la corriente eléctrica, disipando energía en forma de calor. Su unidad es el <strong>ohmio (Ω)</strong>.</p>
+
+<h3>Ley de Ohm</h3>
+<div class="formula">
+  $V = I \times R$
+  <div class="label">Donde V = voltaje (V), I = corriente (A), R = resistencia (Ω)</div>
+</div>
+
+<div class="formula">
+  $P = I^2 \times R = \frac{V^2}{R} = V \times I$
+  <div class="label">Potencia disipada por una resistencia</div>
+</div>
+
+<h3>Código de Colores de Resistencias</h3>
+
+<p>El valor de las resistencias se indica mediente bandas coloreadas. La tabla siguiente muestra el código estándar:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Color</th>
+      <th>Banda 1 (1er dígito)</th>
+      <th>Banda 2 (2do dígito)</th>
+      <th>Banda 3 (Multiplicador)</th>
+      <th>Banda 4 (Tolerancia)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Negro</td><td>0</td><td>0</td><td>×1 Ω (10⁰)</td><td>—</td></tr>
+    <tr><td>Marrón</td><td>1</td><td>1</td><td>×10 Ω (10¹)</td><td>±1%</td></tr>
+    <tr><td>Rojo</td><td>2</td><td>2</td><td>×100 Ω (10²)</td><td>±2%</td></tr>
+    <tr><td>Naranja</td><td>3</td><td>3</td><td>×1 kΩ (10³)</td><td>—</td></tr>
+    <tr><td>Amarillo</td><td>4</td><td>4</td><td>×10 kΩ (10⁴)</td><td>—</td></tr>
+    <tr><td>Verde</td><td>5</td><td>5</td><td>×100 kΩ (10⁵)</td><td>±0.5%</td></tr>
+    <tr><td>Azul</td><td>6</td><td>6</td><td>×1 MΩ (10⁶)</td><td>±0.25%</td></tr>
+    <tr><td>Violeta</td><td>7</td><td>7</td><td>×10 MΩ (10⁷)</td><td>±0.1%</td></tr>
+    <tr><td>Gris</td><td>8</td><td>8</td><td>×100 MΩ (10⁸)</td><td>±0.05%</td></tr>
+    <tr><td>Blanco</td><td>9</td><td>9</td><td>×1 GΩ (10⁹)</td><td>—</td></tr>
+    <tr><td>Dorado</td><td>—</td><td>—</td><td>×0.1 Ω (10⁻¹)</td><td>±5%</td></tr>
+    <tr><td>Plateado</td><td>—</td><td>—</td><td>×0.01 Ω (10⁻²)</td><td>±10%</td></tr>
+    <tr><td>Sin banda</td><td>—</td><td>—</td><td>—</td><td>±20%</td></tr>
+  </tbody>
+</table>
+
+<div class="box box-info">
+  <span class="box-title">INFO — Código SMD</span>
+  En resistencias SMD se usa un código numérico de 3 o 4 dígitos. Los primeros 2 (o 3) son los dígitos significativos y el último indica la potencia de 10 (multiplicador). Ejemplo: <strong>472</strong> = 47 × 10² = 4700 Ω = 4.7 kΩ.
+</div>
+
+<h3>Asociación de Resistencias</h3>
+
+<div class="formula">
+  $R_{\text{serie}} = R_1 + R_2 + R_3 + \ldots + R_n$
+</div>
+
+<div class="formula">
+  $\frac{1}{R_{\text{paralelo}}} = \frac{1}{R_1} + \frac{1}{R_2} + \ldots + \frac{1}{R_n} \quad \text{(para 2: } R_T = \frac{R_1 \cdot R_2}{R_1 + R_2}\text{)}$
+</div>
+
+<h2>2.2 Condensadores</h2>
+
+<p>El condensador (capacitor) almacena energía en un campo eléctrico entre dos placas conductoras separadas por un dieléctrico. Su unidad es el <strong>faradio (F)</strong>.</p>
+
+<h3>Fundamentos</h3>
+<div class="formula">
+  $Q = C \times V$
+  <div class="label">Donde Q = carga (Coulombs), C = capacitancia (F), V = voltaje (V)</div>
+</div>
+
+<h3>Carga del Condensador (RC)</h3>
+<div class="formula">
+  $V_C(t) = V_{\text{fuente}} \left(1 - e^{-t/\tau}\right)$
+  <div class="label">Voltaje durante la carga a través de una resistencia R</div>
+</div>
+
+<div class="formula">
+  $I_C(t) = \frac{V_{\text{fuente}}}{R} \cdot e^{-t/\tau}$
+  <div class="label">Corriente durante la carga</div>
+</div>
+
+<div class="formula">
+  $\tau = R \times C$
+  <div class="label">Constante de tiempo RC</div>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">NOTA — Tiempo de carga completa</span>
+  Se considera que el condensador está prácticamente cargado después de <strong>5τ</strong> (99.3% del valor final).
+</div>
+
+<h3>Descarga del Condensador</h3>
+<div class="formula">
+  $V_C(t) = V_0 \cdot e^{-t/\tau}$
+  <div class="label">Voltaje durante la descarga</div>
+</div>
+
+<div class="formula">
+  $I_C(t) = -\frac{V_0}{R} \cdot e^{-t/\tau}$
+  <div class="label">Corriente de descarga (sentido opuesto)</div>
+</div>
+
+<div class="formula-box">
+  $\tau_{50\%} = \tau \ln 2 \approx 0{,}693\,\tau$
+  <div class="label">Tiempo para descargarse al 50%</div>
+</div>
+
+<h3>Energía Almacenada</h3>
+<div class="formula">
+  $W = \frac{1}{2} C V^2$
+  <div class="label">Energía en julios almacenada en un condensador cargado</div>
+</div>
+
+<h3>Asociación de Condensadores</h3>
+
+<div class="formula">
+  $C_{\text{serie}} = \left(\frac{1}{C_1} + \frac{1}{C_2} + \ldots + \frac{1}{C_n}\right)^{-1}$
+</div>
+
+<div class="formula">
+  $C_{\text{paralelo}} = C_1 + C_2 + \ldots + C_n$
+</div>
+
+<h2>2.3 Bobinas (Inductores)</h2>
+
+<p>Una bobina o inductor almacena energía en un campo magnético cuando circula corriente por ella. Su unidad es el <strong>henrio (H)</strong>.</p>
+
+<h3>FEM Inducida</h3>
+<div class="formula">
+  $V_L = -L \frac{dI}{dt}$
+  <div class="label">Ley de Faraday — voltaje inducido</div>
+</div>
+
+<h3>Carga del Inductor (RL)</h3>
+<div class="formula">
+  $I_L(t) = \frac{V_{\text{fuente}}}{R} \left(1 - e^{-t/\tau_L}\right)$
+  <div class="label">Corriente en un circuito RL serie durante la excitación</div>
+</div>
+
+<div class="formula">
+  $\tau_L = \frac{L}{R}$
+  <div class="label">Constante de tiempo inductiva</div>
+</div>
+
+<h3>Descarga del Inductor</h3>
+<div class="formula">
+  $I_L(t) = I_0 \cdot e^{-t/\tau_L}$
+  <div class="label">Corriente durante la desexcitación</div>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">⚠ PELIGRO — FEM de retroceso</span>
+  Al interrumpir la corriente de un inductor, este genera un pico de voltaje muy alto (<em>flyback</em>): $V = -L \, dI/dt$. <strong>Siempre</strong> colocar un diodo de rueda libre en paralelo con cargas inductivas (motores, relés).
+</div>
+
+<h3>Energía Almacenada</h3>
+<div class="formula">
+  $W = \frac{1}{2} L I^2$
+  <div class="label">Energía en julios almacenada en un inductor</div>
+</div>
+
+<h2>2.4 Reactancia</h2>
+
+<p>La reactancia es la oposición que condensadores y bobinas ofrecen a señales de CA. A diferencia de la resistencia, no disipa energía sino que la almacena temporalmente.</p>
+
+<h3>Reactancia Inductiva \(X_L\)</h3>
+<div class="formula">
+  $X_L = \omega L = 2\pi f L$
+  <div class="label">Ω — la reactancia inductiva aumenta con la frecuencia</div>
+</div>
+
+<h3>Reactancia Capacitiva \(X_C\)</h3>
+<div class="formula">
+  $X_C = \frac{1}{\omega C} = \frac{1}{2\pi f C}$
+  <div class="label">Ω — la reactancia capacitiva disminuye con la frecuencia</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">COMPORTAMIENTO EN FRECUENCIA</span>
+  <ul>
+    <li>A <strong>DC (f = 0)</strong>: el inductor es un cortocircuito, el condensador un circuito abierto.</li>
+    <li>A <strong>f → ∞</strong>: el inductor se comporta como circuito abierto, el condensador como cortocircuito.</li>
+  </ul>
+</div>
+
+<h2>2.5 Impedancia (Z)</h2>
+
+<p>La impedancia generaliza la ley de Ohm a circuitos con resistencia y reactancia. Es un número complejo:</p>
+
+<div class="formula">
+  $\bar{Z} = R + j(X_L - X_C) = R + jX$
+  <div class="label">Impedancia en forma rectangular (Ω)</div>
+</div>
+
+<div class="formula">
+  $|\bar{Z}| = \sqrt{R^2 + (X_L - X_C)^2} = \sqrt{R^2 + X^2}$
+  <div class="label">Módulo de la impedancia</div>
+</div>
+
+<div class="formula">
+  $\varphi = \arctan\left(\frac{X_L - X_C}{R}\right)$
+  <div class="label">Ángulo de fase de la impedancia</div>
+</div>
+
+<div class="formula">
+  $\bar{Z} = Z \, e^{j\varphi}$
+  <div class="label">Forma polar de la impedancia</div>
+</div>
+
+<h3>Ley de Ohm para CA</h3>
+<div class="formula">
+  $\bar{V} = \bar{I} \times \bar{Z}$
+</div>
+
+<h2>2.6 Resonancia RLC</h2>
+
+<h3>2.6.1 Circuito RLC Serie</h3>
+
+<p>En un circuito RLC serie, la impedancia varía con la frecuencia. En resonancia, \(X_L = X_C\) y el circuito se comporta como puramente resistivo.</p>
+
+<div class="formula">
+  $f_0 = \frac{1}{2\pi\sqrt{LC}}$
+  <div class="label">Frecuencia de resonancia</div>
+</div>
+
+<div class="formula">
+  $\omega_0 = \frac{1}{\sqrt{LC}}$
+  <div class="label">Frecuencia angular de resonancia (rad/s)</div>
+</div>
+
+<div class="formula-box">
+  En resonancia: $|\bar{Z}| = R$ (mínimo), $\varphi = 0$, $I_{\max} = V/R$
+</div>
+
+<h3>Factor de Calidad (Q)</h3>
+<div class="formula">
+  $Q = \frac{f_0}{\text{BW}} = \frac{1}{R}\sqrt{\frac{L}{C}} = \frac{2\pi f_0 L}{R}$
+  <div class="label">Factor de calidad del circuito serie</div>
+</div>
+
+<div class="formula">
+  $\text{BW} = \frac{f_0}{Q}$  
+  <div class="label">Ancho de banda (Hz) — puntos de -3 dB</div>
+</div>
+
+<h3>Diagrama de Resonancia RLC Serie</h3>
+<div class="diagram">
+  <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="600" height="280" fill="white" stroke="#e0e0e0"/>
+    <!-- Grid -->
+    <g stroke="#e0e0e0" stroke-width="0.5">
+      <line x1="60" y1="20" x2="60" y2="240"/>
+      <line x1="60" y1="240" x2="580" y2="240"/>
+      <line x1="60" y1="60" x2="580" y2="60"/>
+      <line x1="60" y1="100" x2="580" y2="100"/>
+      <line x1="60" y1="140" x2="580" y2="140"/>
+      <line x1="60" y1="180" x2="580" y2="180"/>
+      <line x1="190" y1="20" x2="190" y2="240"/>
+      <line x1="320" y1="20" x2="320" y2="240"/>
+      <line x1="450" y1="20" x2="450" y2="240"/>
+    </g>
+    <!-- Current vs frequency curve (series) -->
+    <path d="M70,230 Q200,230 310,40 Q320,230 570,230" fill="none" stroke="#1565c0" stroke-width="2.5"/>
+    <!-- Resonance line -->
+    <line x1="320" y1="30" x2="320" y2="230" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+    <!-- BW lines -->
+    <line x1="250" y1="80" x2="250" y2="230" stroke="#2e7d32" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="390" y1="80" x2="390" y2="230" stroke="#2e7d32" stroke-width="1" stroke-dasharray="3,3"/>
+    <!-- Labels -->
+    <text x="320" y="15" text-anchor="middle" font-size="11" fill="#e65100" font-weight="bold">f₀</text>
+    <text x="310" y="270" text-anchor="middle" font-size="10" fill="#666">I (máx)</text>
+    <text x="250" y="250" text-anchor="middle" font-size="9" fill="#2e7d32">f₁</text>
+    <text x="390" y="250" text-anchor="middle" font-size="9" fill="#2e7d32">f₂</text>
+    <text x="320" y="255" text-anchor="middle" font-size="9" fill="#2e7d32">BW</text>
+    <line x1="250" y1="255" x2="390" y2="255" stroke="#2e7d32" stroke-width="1"/>
+    <text x="62" y="234" text-anchor="end" font-size="10" fill="#666">0</text>
+    <text x="62" y="44" text-anchor="end" font-size="10" fill="#666">max</text>
+    <text x="320" y="278" text-anchor="middle" font-size="10" fill="#333">frecuencia</text>
+    <text x="20" y="140" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-90, 20, 140)">Corriente</text>
+    <!-- Title -->
+    <text x="300" y="12" text-anchor="middle" font-size="13" fill="#0d47a1" font-weight="bold">Resonancia RLC Serie — Corriente vs Frecuencia</text>
+  </svg>
+</div>
+
+<h3>2.6.2 Circuito RLC Paralelo</h3>
+
+<p>En un circuito RLC paralelo, la impedancia es <strong>máxima</strong> en resonancia (la corriente se minimiza).</p>
+
+<div class="formula">
+  $f_0 = \frac{1}{2\pi\sqrt{LC}}$
+  <div class="label">La misma frecuencia de resonancia</div>
+</div>
+
+<div class="formula">
+  $Q = R\sqrt{\frac{C}{L}} = \frac{R}{2\pi f_0 L}$
+  <div class="label">Factor de calidad del circuito paralelo</div>
+</div>
+
+<div class="formula-box">
+  En resonancia: $|\bar{Z}| = R$ (máximo), corriente total mínima
+</div>
+
+<h3>Diagrama de Resonancia RLC Paralelo</h3>
+<div class="diagram">
+  <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+    <rect width="600" height="280" fill="white" stroke="#e0e0e0"/>
+    <g stroke="#e0e0e0" stroke-width="0.5">
+      <line x1="60" y1="20" x2="60" y2="240"/>
+      <line x1="60" y1="240" x2="580" y2="240"/>
+      <line x1="60" y1="60" x2="580" y2="60"/>
+      <line x1="60" y1="100" x2="580" y2="100"/>
+      <line x1="60" y1="140" x2="580" y2="140"/>
+      <line x1="60" y1="180" x2="580" y2="180"/>
+    </g>
+    <!-- Impedance curve (parallel - inverted) -->
+    <path d="M70,40 Q200,40 310,230 Q320,230 330,230 Q430,40 570,40" fill="none" stroke="#e65100" stroke-width="2.5"/>
+    <!-- Resonance line -->
+    <line x1="320" y1="30" x2="320" y2="230" stroke="#1565c0" stroke-width="1" stroke-dasharray="4,3"/>
+    <!-- Labels -->
+    <text x="320" y="15" text-anchor="middle" font-size="11" fill="#1565c0" font-weight="bold">f₀</text>
+    <text x="320" y="200" text-anchor="middle" font-size="10" fill="#1565c0">Z (máx)</text>
+    <text x="62" y="234" text-anchor="end" font-size="10" fill="#666">0</text>
+    <text x="62" y="44" text-anchor="end" font-size="10" fill="#666">max</text>
+    <text x="320" y="278" text-anchor="middle" font-size="10" fill="#333">frecuencia</text>
+    <text x="20" y="140" text-anchor="middle" font-size="10" fill="#333" transform="rotate(-90, 20, 140)">Impedancia |Z|</text>
+    <text x="300" y="12" text-anchor="middle" font-size="13" fill="#0d47a1" font-weight="bold">Resonancia RLC Paralelo — Impedancia vs Frecuencia</text>
+  </svg>
+</div>
+
+<h3>Comparativa RLC Serie vs Paralelo</h3>
+<table>
+  <thead>
+    <tr><th>Parámetro</th><th>RLC Serie</th><th>RLC Paralelo</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$f_0$</td><td>$\frac{1}{2\pi\sqrt{LC}}$</td><td>$\frac{1}{2\pi\sqrt{LC}}$</td></tr>
+    <tr><td>Z en resonancia</td><td>$R$ (mínimo)</td><td>$R$ (máximo)</td></tr>
+    <tr><td>I en resonancia</td><td>$V/R$ (máximo)</td><td>$V/R$ (mínimo)</td></tr>
+    <tr><td>Factor Q</td><td>$\frac{1}{R}\sqrt{\frac{L}{C}}$</td><td>$R\sqrt{\frac{C}{L}}$</td></tr>
+    <tr><td>Uso típico</td><td>Filtro paso banda</td><td>Filtro rechaza banda, tanque</td></tr>
+  </tbody>
+</table>
+
+<div class="box box-warning">
+  <span class="box-title">NOTA — Circuito Tanque</span>
+  El conjunto LC paralelo se denomina <strong>circuito tanque</strong> y oscila a $f_0 = 1/(2\pi\sqrt{LC})$. En resonancia, la energía oscila entre el inductor y el condensador sin pérdidas (en el caso ideal).
+</div>
+
+<h3>Frecuencia de Neper (amortiguamiento)</h3>
+<div class="formula">
+  $\alpha = \frac{R}{2L}$
+  <div class="label">Factor de amortiguamiento (Np/s)</div>
+</div>
+
+<h3>Frecuencia natural amortiguada</h3>
+<div class="formula">
+  $\omega_d = \sqrt{\omega_0^2 - \alpha^2}$
+</div>
+
+<h3>Tipos de respuesta</h3>
+<table>
+  <thead>
+    <tr><th>Condición</th><th>Respuesta</th><th>Amortiguamiento</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>$\alpha > \omega_0$</td><td>Sobreamortiguado</td><td>Sin oscilación</td></tr>
+    <tr><td>$\alpha = \omega_0$</td><td>Críticamente amortiguado</td><td>Sin oscilación, respuesta más rápida</td></tr>
+    <tr><td>$\alpha < \omega_0$</td><td>Subamortiguado</td><td>Oscilatoria con decaimiento exponencial</td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>

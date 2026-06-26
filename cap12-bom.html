@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 12 — Bill of Materials (BOM) de Proyectos</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.bom th { background: #37474f; }
+.bom td:nth-child(2) { font-family: monospace; font-size: 9pt; }
+.ref-des { font-weight: bold; color: #1565c0; }
+.supplier-mouser { color: #0068b3; }
+.supplier-digi { color: #007bff; }
+.supplier-lcsc { color: #d32f2f; }
+.total-row td { font-weight: bold; border-top: 2px solid #37474f; }
+</style>
+</head>
+<body>
+
+<h1>Capítulo 12 — Bill of Materials (BOM) de Proyectos Prácticos</h1>
+
+<div class="box box-info">
+<span class="box-title">Introducción</span>
+Este capítulo presenta tres proyectos realistas con BOM completas que incluyen números de parte reales, proveedores reconocidos (Mouser, Digi-Key, LCSC) y precios estimados al momento de publicación. Todos los componentes se pueden comprar facilmente para práctica y aprendizaje.
+</div>
+
+<h2>12.1 Proyecto 1 — Convertidor Buck 5V @ 2A</h2>
+
+<p>Convertidor step-down (reductor) basado en el regulador integrado <strong>MP1584</strong>, ideal para alimentar circuitos digitales desde baterías de 12V o fuentes de pared. Eficiencia >85%.</p>
+
+<h4>Especificaciones de diseño:</h4>
+<ul>
+<li>Entrada: 6V - 24V DC</li>
+<li>Salida: 5V ±4%</li>
+<li>Corriente máxima: 2A continua</li>
+<li>Frecuencia de conmutación: 1.5 MHz</li
+<li>Rizado de salida: &lt;50mV pp</li>
+<li>Protección: sobrecorriente, thermal shutdown</li>
+</ul>
+
+<h4>Bill of Materials — Buck 5V@2A</h4>
+
+<table class="bom">
+<thead>
+<tr>
+  <th>#</th>
+  <th>Part Number</th>
+  <th>Referencia</th>
+  <th>Valor</th>
+  <th>Descripción</th>
+  <th>Footprint</th>
+  <th>Qty</th>
+  <th>Proveedor</th>
+  <th>Precio unit.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><b>MP1584EN-LF-P</b></td>
+  <td class="ref-des">U1</td>
+  <td>MP1584</td>
+  <td>Buck converter, 3A, 4.5-28Vin</td>
+  <td>SOIC-8</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$1.02 USD</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><b>LMQ343303QDSDE-3011</b></td>
+  <td class="ref-des">L1</td>
+  <td>22µH</td>
+  <td>Inductor 3.3A Isat</td>
+  <td>4x4mm</td>
+  <td>1</td>
+  <td class="supplier-digi">Digi-Key</td>
+  <td>$0.89 USD</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><b>CL21A106KOQNNNE</b></td>
+  <td class="ref-des">Cin</td>
+  <td>10µF/25V</td>
+  <td>Cerámico MLCC X5R</td>
+  <td>0805</td>
+  <td>2</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.03 USD</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><b>CL31A106KBHNNNE</b></td>
+  <td class="ref-des">Cout</td>
+  <td>100µF/10V</td>
+  <td>Cerámico MLCC X5R</td>
+  <td>1210</td>
+  <td>2</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.14 USD</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><b>RC0603FR-0710KL</b></td>
+  <td class="ref-des">Rfb1</td>
+  <td>10kΩ</td>
+  <td>Resistencia 1% 0.1W</td>
+  <td>0603</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><b>RC0603FR-0733KL</b></td>
+  <td class="ref-des">Rfb2</td>
+  <td>33kΩ</td>
+  <td>Resistencia 1% 0.1W</td>
+  <td>0603</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><b>CJVL-05D12S05-V</b></td>
+  <td class="ref-des">J1</td>
+  <td>Jack DC</td>
+  <td>Conector 2.1mm barrel jack</td>
+  <td>Through-hole</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.75 USD</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><b>T4010-REDC</b></td>
+  <td class="ref-des">D1</td>
+  <td>SS34</td>
+  <td>Schottky diode 3A 40V</td>
+  <td>SOD-123</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.06 USD</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><b>150080RS75000</b></td>
+  <td class="ref-des">D2</td>
+  <td>LED rojo</td>
+  <td>Indicador power-on</td>
+  <td>0805</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.12 USD</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><b>RC0603FR-071KL</b></td>
+  <td class="ref-des">Rled</td>
+  <td>1kΩ</td>
+  <td>LED current limit</td>
+  <td>0603</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td colspan="8"></td>
+  <td><b>Subtotal estimado: $5.61 USD</b></td>
+</tr>
+</tbody>
+</table>
+
+<div class="box box-info">
+<span class="box-title">� Notas de diseño — Buck MP1584</span>
+<ul>
+<li>Colocar Cin lo más cerca posible del pin VIN del IC (máximo 5mm)</li>
+<li>Cout debe ser cerámico de baja ESR. No usar electrolítico como único capacitor de salida</li>
+<li>Inductor: Isat > 2.5A (con margen del 25% sobre Iout max)</li>
+<li>Las resistencias de feedback determinan Vout: Vout = 0.8V × (1 + Rfb1/Rfb2). Para 5V: Rfb1=33kΩ, Rfb2=10kΩ</li>
+<li>Schottky en paralelo con el pin SW (switch node) para protección</li>
+<li>Plano de tierra continuo debajo del regulador</li>
+</ul>
+</div>
+
+<h2>12.2 Proyecto 2 — Fuente Flyback 5V @ 3A Aislada</h2>
+
+<p>Fuente conmutada aislada basada en el controlador <strong>TNY288PG</strong> de Power Integrations. Ofrece aislamiento galvánico entre entrada y salida, esencial para equipos médicos, industriales o cuando se requiere seguridad.</p>
+
+<h4>Especificaciones de diseño:</h4>
+<ul>
+<li>Entrada: 85V - 265V AC (universal)</li>
+<li>Salida: 5V ±5%</li>
+<li>Corriente máxima: 3A</li>
+<li>Frecuencia de conmutación: 132 kHz</li>
+<li>Rizado: &lt;100mV pp</li>
+<li>Aislamiento: 3.5kV AC entrada-salida</li>
+<li>Protección: cortocircuito, sobrecarga, thermal</li>
+</ul>
+
+<h4>Bill of Materials — Flyback 5V@3A</h4>
+
+<table class="bom">
+<thead>
+<tr>
+  <th>#</th>
+  <th>Part Number</th>
+  <th>Referencia</th>
+  <th>Valor</th>
+  <th>Descripción</th>
+  <th>Paquete</th>
+  <th>Qty</th>
+  <th>Proveedor</th>
+  <th>Precio unit.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><b>TNY288PG</b></td>
+  <td class="ref-des">U1</td>
+  <td>TinySwitch-3</td>
+  <td>Flyback controller, hasta 26W</td>
+  <td>DIP-8</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$2.89 USD</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><b>VOR1142-36-S424</b></td>
+  <td class="ref-des">T1</td>
+  <td>Transformer 1:5</td>
+  <td>Flyback transformer 15W</td>
+  <td>Through-hole</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$2.57 USD</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><b>UCC27515DBVR</b></td>
+  <td class="ref-des">U2</td>
+  <td>OpAmp</td>
+  <td>Comparador de voltaje para regulación</td>
+  <td>SOT-23-5</td>
+  <td>1</td>
+  <td class="supplier-digi">Digi-Key</td>
+  <td>$0.79 USD</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><b>1N5408</b></td>
+  <td class="ref-des">BD1</td>
+  <td>3A/1000V</td>
+  <td>Puente rectificador entrada AC</td>
+  <td>Through-hole</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.12 USD</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><b>UVZ2A101MED</b></td>
+  <td class="ref-des">Cbus1</td>
+  <td>100µF/100V</td>
+  <td>Electrolítico, bulk capacitor después del puente</td>
+  <td>Radial 10x16mm</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.21 USD</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><b>UUV1J101MHD</b></td>
+  <td class="ref-des">Cout</td>
+  <td>1000µF/16V</td>
+  <td>Electrolítico de salida, bajo ESR</td>
+  <td>Radial 10x20mm</td>
+  <td>2</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.60 USD</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><b>CL21B104KBCNNNC</b></td>
+  <td class="ref-des">Cbypass</td>
+  <td>100nF</td>
+  <td>MLCC bypass IC</td>
+  <td>0805</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.02 USD</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><b>RUEF300</b></td>
+  <td class="ref-des">F1</td>
+  <td>PTC 3A/15V</td>
+  <td>Fusible resettable, protección entrada</td>
+  <td>Through-hole</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.45 USD</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><b>SF301S-T/TP</b></td>
+  <td class="ref-des">JAC1</td>
+  <td>IEC 320 C14</td>
+  <td>Conector AC inlet</td>
+  <td>SMD</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$1.85 USD</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><b>1S2076A</b></td>
+  <td class="ref-des">Doutput</td>
+  <td>SBD 20V/5A</td>
+  <td>Diodo Schottky salida</td>
+  <td>SOD-123</td>
+  <td>2</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.09 USD</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><b>RC0805FR-07499RL</b></td>
+  <td class="ref-des">Rfb1</td>
+  <td>499Ω</td>
+  <td>Feedback upper</td>
+  <td>0805</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><b>RC0805FR-0720KRL</b></td>
+  <td class="ref-des">Rfb2</td>
+  <td>20kΩ</td>
+  <td>Feedback lower</td>
+  <td>0805</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><b>CY1-472M</b></td>
+  <td class="ref-des">CY1</td>
+  <td>4.7nF/250V</td>
+  <td>Condensador Y, EMI filter</td>
+  <td>Safety cap</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.49 USD</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><b>MFR-25FBF52-330R</b></td>
+  <td class="ref-des">RL</td>
+  <td>330Ω</td>
+  <td>Limitador corriente de arranque</td>
+  <td>2512</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><b>TL431BQDBZ</b></td>
+  <td class="ref-des">U3</td>
+  <td>TL431</td>
+  <td>Referencia shunt para regulación</td>
+  <td>SOT-23</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.04 USD</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><b>OL-IRM-3648H-5V</b></td>
+  <td class="ref-des">Jout</td>
+  <td>USB-A</td>
+  <td>Conector USB para salida 5V</td>
+  <td>Through-hole</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.35 USD</td>
+</tr>
+<tr>
+  <td colspan="8"></td>
+  <td><b>Subtotal estimado: $12.20 USD</b></td>
+</tr>
+</tbody>
+</table>
+
+<div class="box box-warning">
+<span class="box-title">⚠️ ADVERTENCIA — Tensión de red</span>
+Esta fuente trabaja con voltajes de <strong>corriente alterna (AC) que son peligrosos</strong>. No tocar la parte de alta tensión cuando esté conectada. El capacitor Cbus1 retiene carga incluso después de desconectar. Antes de manipular, descargar con resistencia de 10kΩ 3W por 30 segundos.
+</div>
+
+<h2>12.3 Proyecto 3 — Driver LED 20W con Regulación PWM</h2>
+
+<p>Driver para LED COB (Chip-on-Board) de 20W con control de intensidad PWM y protección térmica. Basado en el regulador <strong>PT4115E89E</strong>, driver de LED de 1.2A con entrada 6-30V.</p>
+
+<h4>Especificaciones:</h4>
+<ul>
+<li>Entrada: 12V DC (batería o fuente)</li>
+<li>Salida: LED COB 20W ≈ 30-36V / 600mA</li>
+<li>Atenuación PWM: 100Hz - 1kHz (externo desde MCU)</li>
+<li>Riple de corriente: &lt;3%</li>
+<li>Protección: thermal, open-circuit LED</li>
+</ul>
+
+<h4>Bill of Materials — Driver LED 20W</h4>
+
+<table class="bom">
+<thead>
+<tr>
+  <th>#</th>
+  <th>Part Number</th>
+  <th>Referencia</th>
+  <th>Valor</th>
+  <th>Descripción</th>
+  <th>Paquete</th>
+  <th>Qty</th>
+  <th>Proveedor</th>
+  <th>Precio unit.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><b>PT4115E89E</b></td>
+  <td class="ref-des">U1</td>
+  <td>PT4115</td>
+  <td>LED driver 1.2A</td>
+  <td>SOT-89-5</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.65 USD</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><b>CL32B476KOVLNNE</b></td>
+  <td class="ref-des">Cin</td>
+  <td>47µF/35V</td>
+  <td>MLCC X7R</td>
+  <td>1210</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.15 USD</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><b>CL21A106KOQNNNE</b></td>
+  <td class="ref-des">Cout</td>
+  <td>10µF/50V</td>
+  <td>MLCC X5R</td>
+  <td>0805</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.04 USD</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><b>1588-10.56</b></td>
+  <td class="ref-des">L1</td>
+  <td>33µH</td>
+  <td>Inductor 3.5A Isat</td>
+  <td>10x10mm</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.95 USD</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><b>SS36</b></td>
+  <td class="ref-des">D1</td>
+  <td>SS36</td>
+  <td>Schottky 3A 60V</td>
+  <td>SOD-123</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.08 USD</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><b>RC1206FR-07150RL</b></td>
+  <td class="ref-des">Rsense</td>
+  <td>150mΩ</td>
+  <td>Current sense</td>
+  <td>1206</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><b>AO3400A</b></td>
+  <td class="ref-des">Q1</td>
+  <td>AO3400</td>
+  <td>MOSFET N-channel 30V 5.7A</td>
+  <td>SOT-23</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.05 USD</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><b>PANASONIC_BK-913APN</b></td>
+  <td class="ref-des">J1</td>
+  <td>3-pin</td>
+  <td>Conector LED (XLR-3)</td>
+  <td>Through-hole</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$1.00 USD</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><b>Heatsink 20x20x10mm</b></td>
+  <td class="ref-des">HS1</td>
+  <td>—</td>
+  <td>Disipador para LED COB 20W</td>
+  <td>—</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$1.20 USD</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><b>Heatsink 10x10x8mm</b></td>
+  <td class="ref-des">HS2</td>
+  <td>—</td>
+  <td>Disipador para PT4115</td>
+  <td>—</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.15 USD</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><b>RC0603FR-07100RL</b></td>
+  <td class="ref-des">Rgate</td>
+  <td>100Ω</td>
+  <td>Limitador corriente gate MOSFET</td>
+  <td>0603</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><b>C3D1P70000</b></td>
+  <td class="ref-des">Cdelay</td>
+  <td>1nF</td>
+  <td>Cap arranque suave</td>
+  <td>0603</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$0.11 USD</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><b>CRCW0603470KFKT</b></td>
+  <td class="ref-des">Rth1</td>
+  <td>470kΩ</td>
+  <td>Pull-down gate</td>
+  <td>0603</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.01 USD</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><b>LED COB 20W Cool White</b></td>
+  <td class="ref-des">LED1</td>
+  <td>20W 5000K</td>
+  <td>Chip-on-Board LED</td>
+  <td>Star MCPCB</td>
+  <td>1</td>
+  <td class="supplier-mouser">Mouser</td>
+  <td>$4.80 USD</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><b>F Conn SMD 2P</b></td>
+  <td class="ref-des">J2</td>
+  <td>2-pin</td>
+  <td>Conector entrada 12V</td>
+  <td>SMD</td>
+  <td>1</td>
+  <td class="supplier-lcsc">LCSC</td>
+  <td>$0.03 USD</td>
+</tr>
+<tr>
+  <td colspan="8"></td>
+  <td><b>Subtotal estimado: $11.48 USD</b></td>
+</tr>
+</tbody>
+</table>
+
+<div class="box box-success">
+<span class="box-title">� Notas de diseño — Driver LED PT4115</span>
+<ul>
+<li>Corriente LED: I_LED = Vsense/Rsense. Con Rsense=150mΩ y Vsen=200mV → I_LED ≈ 600mA</li>
+<li>Inductor: L = (Vin_max - Vout) × D / (f × I_ripple). Para 36Vout, 12Vin: L ≈ 33µH</li>
+<li>MOSFET externo para PWM: conectado al gate del PT4115 (pin DIM) para atenuación</li>
+<li>Frecuencia PWM de atenuación: mínimo 200Hz para evitar ruido audible en el inductor</li>
+<li>Plano de tierra esencial — el driver conmuta a 500kHz y genera EMI</li>
+<li>Thermal: a 20W el LED requiere disipador térmico con Rth &lt;2°C/W</li>
+</ul>
+</div>
+
+<h2>12.4 Resumen de Proveedores</h2>
+
+<table>
+<thead>
+<tr><th>Proveedor</th><th>Sitio</th><th>Mejor para</th><th>Notas</th></tr>
+</thead>
+<tbody>
+<tr><td><b>Mouser</b></td><td>mouser.com</td><td>Componentes activos y semiconductores</td><td>Amplio stock, datasheets, envío global</td></tr>
+<tr><td><b>Digi-Key</b></td><td>digikey.com</td><td>Variedad de componentes, primeros envíos gratis</td><td>Excelente search, muchos componentes</td></tr>
+<tr><td><b>LCSC</b></td><td>lcsc.com</td><td>Componentes pasivos, conectores, LEDs</td><td>Más económico (especialmente pasivos)</td></tr>
+<tr><td><b>TME</b></td><td>tme.com</td><td>Distribuidor europeo</td><td>Para Europa, alternativa a Mouser/Digi-Key</td></tr>
+<tr><td><b>Farnell</b></td><td>farnell.com</td><td>Distribuidor europeo</td><td>Buena disponibilidad en acción</td></tr>
+</tbody>
+</table>
+
+<h2>12.5 Cómo Cotizar y Comprar Eficiente</h2>
+
+<ol class="steps">
+<li><strong>Unificar BOMs</strong> — Si compartes componentes entre proyectos, consolidar en una sola lista y comprar cantidades superiores para aprovechar envío.</li>
+<li><strong>Verificar stock</strong> — La escasez global alterna componentes. Si un MP1584 no está disponible, buscar alternativas: LM2596 (más barato), MP2307 (más pequeño), LED1886 (para el flyback).</li>
+<li><strong>Comprar repuestos</strong> — Pasivas y conectores son baratos; comprar al menos el doble de lo necesario.</li>
+<li><strong>Considerar el envío</strong> — Un envío estándar de 20-30 USD puede ser más caro que los componentes. Agrupar pedidos para optimizar costos de envío.</li>
+<li><strong>Revisar alternativos</strong> — Muchos componentes tienen equivalentes. Ej: Si no hay TL431BQDBZ, buscar LM431BIM3X o AZ431, que son compatibles pin-to-pin.</li>
+<li><strong>Datasheet</strong> — Siempre leer el datasheet antes de comprar. Una resistencia de 2012 en lugar de 0603 puede evitarse en prototipos manuales.</li>
+</ol>
+
+<div class="box box-info">
+<span class="box-title">� Costo total de los tres proyectos</span>
+<table>
+<thead><tr><th>Proyecto</th><th>Costo estimado</th><th>Complejidad</th></tr></thead>
+<tbody>
+<tr><td>Buck 5V@2A</td><td>~$5.61 USD</td><td>Media</td></tr>
+<tr><td>Flyback 5V@3A</td><td>~$12.20 USD</td><td>Alta �</td></tr>
+<tr><td>Driver LED 20W</td><td>~$11.48 USD</td><td>Media-Alta</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>12.6 Hoja de Pedido Consolidada</h2>
+
+<p>Para facilitar la compra, aquí está la BOM consolidada de los tres proyectos:</p>
+
+<table class="bom">
+<thead>
+<tr><th>Ref/Función</th><th>Part Number</th><th>Cantidad total</th><th>Usar en</th><th>Proveedor</th></tr></thead>
+<tbody>
+<tr><td>Buck controller</td><td>MP1584EN-LF-P</td><td>1</td><td>Proyecto 1</td><td>Mouser</td></tr>
+<tr><td>Flyback controller</td><td>TNY288PG</td><td>1</td><td>Proyecto 2</td><td>Mouser</td></tr>
+<tr><td>LED driver</td><td>PT4115E89E</td><td>1</td><td>Proyecto 3</td><td>Mouser</td></tr>
+<tr><td>MLCC 100nF/50V</td><td>CL10B104KB8NNNC</td><td>3</td><td>Todos</td><td>LCSC</td></tr>
+<tr><td>MLCC 10µF/25V</td><td>CL21A106KOQNNNE</td><td>3</td><td>Proyectos 1,3</td><td>LCSC</td></tr>
+<tr><td>MLCC 1µF/50V</td><td>CL21B104KBCNNNC</td><td>2</td><td>Proyectos 2</td><td>LCSC</td></tr>
+<tr><td>Resistencia 1kΩ 0603</td><td>RC0603FR-071KL</td><td>2</td><td>Proyectos 1</td><td>LCSC</td></tr>
+<tr><td>Resistencia 10kΩ 0603</td><td>RC0603FR-0710KL</td><td>2</td><td>Proyectos 1</td><td>LCSC</td></tr>
+<tr><td>Schottky 3A 40V</td><td>SS34</td><td>3</td><td>Proyectos 1,2</td><td>LCSC</td></tr>
+<tr><td>Schottky SS36</td><td>SS36</td><td>3</td><td>Proyecto 3</td><td>LCSC</td></tr>
+<tr><td>Diodo rectificador</td><td>1N5408</td><td>4</td><td>Proyecto 2</td><td>LCSC</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

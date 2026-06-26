@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 4 — Filtros y Circuitos Resonantes | Electrónica Práctica v2</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$','$'], ['\\(','\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- ================================================================ -->
+<h1 id="cap4">4. Filtros y Circuitos Resonantes</h1>
+<p class="subtitle">Circuitos RC, LC y filtros activos que seleccionan o rechazan frecuencias específicas.</p>
+
+<h2 id="cap4-1">4.1 Filtro RC Pasa-Bajas (Low-Pass Filter)</h2>
+<p>El filtro RC pasa-bajas permite el paso de señales de <strong>baja frecuencia</strong> y atenúa las de frecuencia superior a un valor límite llamado <strong>frecuencia de corte</strong> ($f_c$).</p>
+
+<h3>Diagrama del circuito:</h3>
+<div class="diagram">
+<svg viewBox="0 0 420 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="210" y="20" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">Filtro RC Pasa-Bajas</text>
+  <!-- Input -->
+  <text x="30" y="95" text-anchor="middle" font-size="10">Vin</text>
+  <line x1="50" y1="90" x2="90" y2="90" stroke="#333" stroke-width="2"/>
+  <!-- Sin wave symbol -->
+  <path d="M 55 85 Q 60 80 65 85 Q 70 90 75 85 Q 80 80 85 85" fill="none" stroke="#4fc3f7" stroke-width="1"/>
+  <!-- Resistor R -->
+  <rect x="90" y="80" width="80" height="20" fill="#fff3e0" stroke="#e65100" stroke-width="1.5" rx="2"/>
+  <text x="130" y="94" text-anchor="middle" font-size="10" fill="#e65100">R</text>
+  <line x1="170" y1="90" x2="220" y2="90" stroke="#333" stroke-width="2"/>
+  <!-- Capacitor C to ground -->
+  <line x1="220" y1="90" x2="220" y2="120" stroke="#333" stroke-width="2"/>
+  <line x1="210" y1="120" x2="230" y2="120" stroke="#0d47a1" stroke-width="2.5"/>
+  <line x1="212" y1="126" x2="228" y2="126" stroke="#0d47a1" stroke-width="2.5"/>
+  <text x="240" y="126" font-size="10" fill="#0d47a1">C</text>
+  <!-- Ground -->
+  <line x1="214" y1="132" x2="226" y2="132" stroke="#333" stroke-width="1.5"/>
+  <line x1="216" y1="136" x2="224" y2="136" stroke="#333" stroke-width="1.5"/>
+  <line x1="218" y1="140" x2="222" y2="140" stroke="#333" stroke-width="1.5"/>
+  <!-- Output -->
+  <line x1="220" y1="90" x2="300" y2="90" stroke="#333" stroke-width="2"/>
+  <text x="260" y="82" text-anchor="middle" font-size="10" fill="#2e7d32">Vout</text>
+  <!-- Output arrow -->
+  <line x1="300" y1="90" x2="340" y2="90" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="340,86 350,90 340,94" fill="#2e7d32"/>
+  <!-- Attenuated wave -->
+  <path d="M 350 87 Q 355 84 360 87 Q 365 90 370 87 Q 375 84 380 87 Q 385 90 390 87" fill="none" stroke="#4fc3f7" stroke-width="1" opacity="0.5"/>
+</svg>
+</div>
+
+<h3>Frecuencia de corte:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$f_c = \dfrac{1}{2\pi R C}$</strong></div>
+  <div class="label">$f_c$ en Hz, $R$ en Ω, $C$ en F</div>
+</div>
+
+<h3>Función de transferencia:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$H(j\omega) = \dfrac{V_{out}}{V_{in}} = \dfrac{1}{1 + j\omega R C} = \dfrac{1}{1 + j\frac{f}{f_c}}$</strong></div>
+</div>
+
+<h3>Módulo y fase:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$|H(f)| = \dfrac{1}{\sqrt{1 + \left(\frac{f}{f_c}\right)^2}}$</strong></div>
+  <div class="label">Atenuación = $-20 \log_{10}|H|$ dB</div>
+</div>
+<div class="formula">
+  <div class="formula-box"><strong>$\phi(f) = -\arctan\left(\frac{f}{f_c}\right)$</strong></div>
+  <div class="Label">Desfase entre entrada y salida</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">📐 Comportamiento clave</span>
+  <ul>
+    <li>A $f = f_c$: $|H| = \frac{1}{\sqrt{2}} \approx 0.707$ → <strong>-3 dB</strong> (potencia a la mitad)</li>
+    <li>A $f \ll f_c$: $|H| \approx 1$ → <strong>0 dB</strong> (sin atenuación)</li>
+    <li>A $f \gg f_c$: $|H| \approx \frac{f_c}{f}$ → <strong>-20 dB/década</strong></li>
+    <li>Fase en $f_c$: <strong>-45°</strong>; en DC: 0°; en HF: → -90°</li>
+  </ul>
+</div>
+
+<h3>Respuesta en frecuencia (Bode):</h3>
+<div class="diagram">
+<svg viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="500" height="280" fill="white"/>
+  <!-- Grid -->
+  <g stroke="#e0e0e0" stroke-width="0.5">
+    <line x1="60" y1="30" x2="60" y2="250"/>
+    <line x1="140" y1="30" x2="140" y2="250"/>
+    <line x1="220" y1="30" x2="220" y2="250"/>
+    <line x1="300" y1="30" x2="300" y2="250"/>
+    <line x1="380" y1="30" x2="380" y2="250"/>
+    <line x1="460" y1="30" x2="460" y2="250"/>
+    <line x1="60" y1="30" x2="480" y2="30"/>
+    <line x1="60" y1="74" x2="480" y2="74"/>
+    <line x1="60" y1="118" x2="480" y2="118"/>
+    <line x1="60" y1="162" x2="480" y2="162"/>
+    <line x1="60" y1="206" x2="480" y2="206"/>
+    <line x1="60" y1="250" x2="480" y2="250"/>
+  </g>
+  <!-- Axes labels -->
+  <text x="270" y="270" text-anchor="middle" font-size="11" fill="#333">Frecuencia (Hz) — Escala log</text>
+  <text x="20" y="140" text-anchor="middle" font-size="11" fill="#333" transform="rotate(-90,20,140)">Ganancia (dB)</text>
+  <!-- Y-axis values -->
+  <text x="55" y="34" text-anchor="end" font-size="9" fill="#666">0</text>
+  <text x="55" y="78" text-anchor="end" font-size="9" fill="#666">-3</text>
+  <text x="55" y="122" text-anchor="end" font-size="9" fill="#666">-10</text>
+  <text x="55" y="166" text-anchor="end" font-size="9" fill="#666">-20</text>
+  <text x="55" y="210" text-anchor="end" font-size="9" fill="#666">-40</text>
+  <!-- X-axis values -->
+  <text x="60" y="265" text-anchor="middle" font-size="8" fill="#666">0.1 fc</text>
+  <text x="140" y="265" text-anchor="middle" font-size="8" fill="#666">0.5 fc</text>
+  <text x="220" y="265" text-anchor="middle" font-size="9" font-weight="bold" fill="#e65100">fc</text>
+  <text x="300" y="265" text-anchor="middle" font-size="8" fill="#666">2 fc</text>
+  <text x="380" y="265" text-anchor="middle" font-size="8" fill="#666">5 fc</text>
+  <text x="460" y="265" text-anchor="middle" font-size="8" fill="#666">10 fc</text>
+  <!-- -3dB line -->
+  <line x1="60" y1="74" x2="480" y2="74" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="482" y="78" font-size="8" fill="#e65100">-3dB</text>
+  <!-- Gain curve: flat then -20dB/decade -->
+  <path d="M 60 30 L 220 30 L 264 74 L 348 162 L 432 250" fill="none" stroke="#1565c0" stroke-width="2.5"/>
+  <!-- Corner marker -->
+  <circle cx="220" cy="30" r="4" fill="#e65100"/>
+  <circle cx="220" cy="74" r="4" fill="#e65100"/>
+  <line x1="220" y1="30" x2="220" y2="74" stroke="#e65100" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="225" y="55" font-size="8" fill="#e65100">-3dB</text>
+  <!-- Slope annotation -->
+  <text x="370" y="200" font-size="9" fill="#1565c0">-20 dB/década</text>
+  <line x1="340" y1="180" x2="420" y2="220" stroke="#1565c0" stroke-width="1" stroke-dasharray="2,2"/>
+</svg>
+</div>
+
+<hr style="margin:30px 0; border-color:#ddd;">
+
+<h2 id="cap4-2">4.2 Filtro RC Pasa-Altas (High-Pass Filter)</h2>
+<p>El filtro RC pasa-altas <strong>bloquea DC</strong> y las bajas frecuencias, permitiendo el paso de señales de frecuencia superior a $f_c$.</p>
+
+<h3>Diagrama del circuito:</h3>
+<div class="diagram">
+<svg viewBox="0 0 420 180" xmlns="http://www.w3.org/2000/svg">
+  <text x="210" y="20" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">Filtro RC Pasa-Altas</text>
+  <!-- Input -->
+  <text x="30" y="95" text-anchor="middle" font-size="10">Vin</text>
+  <line x1="50" y1="90" x2="90" y2="90" stroke="#333" stroke-width="2"/>
+  <!-- Capacitor C first -->
+  <line x1="90" y1="80" x2="90" y2="100" stroke="#0d47a1" stroke-width="2.5"/>
+  <line x1="96" y1="80" x2="96" y2="100" stroke="#0d47a1" stroke-width="2.5"/>
+  <text x="82" y="78" font-size="10" fill="#0d47a1">C</text>
+  <line x1="96" y1="90" x2="160" y2="90" stroke="#333" stroke-width="2"/>
+  <!-- Resistor R to ground -->
+  <line x1="160" y1="90" x2="160" y2="120" stroke="#333" stroke-width="2"/>
+  <rect x="120" y="120" width="80" height="20" fill="#fff3e0" stroke="#e65100" stroke-width="1.5" rx="2"/>
+  <text x="160" y="134" text-anchor="middle" font-size="10" fill="#e65100">R</text>
+  <line x1="160" y1="140" x2="160" y2="155" stroke="#333" stroke-width="2"/>
+  <!-- Ground -->
+  <line x1="154" y1="155" x2="166" y2="155" stroke="#333" stroke-width="1.5"/>
+  <line x1="156" y1="159" x2="164" y2="159" stroke="#333" stroke-width="1.5"/>
+  <line x1="158" y1="163" x2="162" y2="163" stroke="#333" stroke-width="1.5"/>
+  <!-- Output -->
+  <line x1="160" y1="90" x2="240" y2="90" stroke="#333" stroke-width="2"/>
+  <text x="200" y="82" text-anchor="middle" font-size="10" fill="#2e7d32">Vout</text>
+  <line x1="240" y1="90" x2="280" y2="90" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="280,86 290,90 280,94" fill="#2e7d32"/>
+</svg>
+</div>
+
+<h3>Frecuencia de corte (misma fórmula):</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$f_c = \dfrac{1}{2\pi R C}$</strong></div>
+</div>
+
+<h3>Función de transferencia:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$H(j\omega) = \dfrac{j\omega R C}{1 + j\omega R C} = \dfrac{j\frac{f}{f_c}}{1 + j\frac{f}{f_c}}$</strong></div>
+</div>
+
+<h3>Módulo y fase:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$|H(f)| = \dfrac{\frac{f}{f_c}}{\sqrt{1 + \left(\frac{f}{f_c}\right)^2}}$</strong></div>
+</div>
+<div class="formula">
+  <div class="formula-box"><strong>$\phi(f) = 90° - \arctan\left(\frac{f}{f_c}\right)$</strong></div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">📐 Comportamiento clave</span>
+  <ul>
+    <li>A $f = f_c$: $|H| = \frac{1}{\sqrt{2}} \approx 0.707$ → <strong>-3 dB</strong></li>
+    <li>A $f \ll f_c$: $|H| \approx \frac{f}{f_c}$ → <strong>+20 dB/década</strong></li>
+    <li>A $f \gg f_c$: $|H| \approx 1$ → <strong>0 dB</strong> (sin atenuación)</li>
+    <li>Fase en $f_c$: <strong>+45°</strong>; en DC: +90°; en HF: → 0°</li>
+  </ul>
+</div>
+
+<h3>Respuesta en frecuencia (Bode):</h3>
+<div class="diagram">
+<svg viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="500" height="280" fill="white"/>
+  <!-- Grid -->
+  <g stroke="#e0e0e0" stroke-width="0.5">
+    <line x1="60" y1="30" x2="60" y2="250"/>
+    <line x1="140" y1="30" x2="140" y2="250"/>
+    <line x1="220" y1="30" x2="220" y2="250"/>
+    <line x1="300" y1="30" x2="300" y2="250"/>
+    <line x1="380" y1="30" x2="380" y2="250"/>
+    <line x1="460" y1="30" x2="460" y2="250"/>
+    <line x1="60" y1="30" x2="480" y2="30"/>
+    <line x1="60" y1="74" x2="480" y2="74"/>
+    <line x1="60" y1="118" x2="480" y2="118"/>
+    <line x1="60" y1="162" x2="480" y2="162"/>
+    <line x1="60" y1="206" x2="480" y2="206"/>
+    <line x1="60" y1="250" x2="480" y2="250"/>
+  </g>
+  <!-- Axes labels -->
+  <text x="270" y="270" text-anchor="middle" font-size="11" fill="#333">Frecuencia (Hz) — Escala log</text>
+  <text x="20" y="140" text-anchor="middle" font-size="11" fill="#333" transform="rotate(-90,20,140)">Ganancia (dB)</text>
+  <!-- Y-axis values -->
+  <text x="55" y="34" text-anchor="end" font-size="9" fill="#666">0</text>
+  <text x="55" y="78" text-anchor="end" font-size="9" fill="#666">-3</text>
+  <text x="55" y="122" text-anchor="end" font-size="9" fill="#666">-10</text>
+  <text x="55" y="166" text-anchor="end" font-size="9" fill="#666">-20</text>
+  <text x="55" y="210" text-anchor="end" font-size="9" fill="#666">-40</text>
+  <!-- X-axis values -->
+  <text x="60" y="265" text-anchor="middle" font-size="8" fill="#666">0.1 fc</text>
+  <text x="140" y="265" text-anchor="middle" font-size="8" fill="#666">0.5 fc</text>
+  <text x="220" y="265" text-anchor="middle" font-size="9" font-weight="bold" fill="#e65100">fc</text>
+  <text x="300" y="265" text-anchor="middle" font-size="8" fill="#666">2 fc</text>
+  <text x="380" y="265" text-anchor="middle" font-size="8" fill="#666">5 fc</text>
+  <text x="460" y="265" text-anchor="middle" font-size="8" fill="#666">10 fc</text>
+  <!-- -3dB line -->
+  <line x1="60" y1="74" x2="480" y2="74" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="482" y="78" font-size="8" fill="#e65100">-3dB</text>
+  <!-- Gain curve: +20dB/decade then flat -->
+  <path d="M 60 250 L 140 162 L 176 118 L 220 74 L 460 30" fill="none" stroke="#1565c0" stroke-width="2.5"/>
+  <!-- Corner marker -->
+  <circle cx="220" cy="74" r="4" fill="#e65100"/>
+  <!-- Slope annotation -->
+  <text x="80" y="200" font-size="9" fill="#1565c0">+20 dB/década</text>
+  <line x1="80" y1="210" x2="140" y2="170" stroke="#1565c0" stroke-width="1" stroke-dasharray="2,2"/>
+</svg>
+</div>
+
+<div class="box box-success">
+  <span class="box-title">🎯 Aplicaciones comunes</span>
+  <ul>
+    <li><strong>Pasa-bajas</strong>: anti-aliasing, suavizado de fuentes, eliminación de ruido HF, audio grave</li>
+    <li><strong>Pasa-altas</strong>: acoplamiento AC entre etapas, eliminación de offset DC, audio agudo, detección de flancos</li>
+  </ul>
+</div>
+
+<hr style="margin:30px 0; border-color:#ddd;">
+
+<h2 id="cap4-3">4.3 Resonancia LC</h2>
+<p>Un circuito LC (inductor + capacitor) resuena a una frecuencia específica donde la energía oscila entre el campo magnético del inductor y el campo eléctrico del capacitor.</p>
+
+<h3>Frecuencia de resonancia:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$f_0 = \dfrac{1}{2\pi\sqrt{L C}}$</strong></div>
+  <div class="label">$f_0$ en Hz, $L$ en H, $C$ en F</div>
+</div>
+
+<h3>Frecuencia angular de resonancia:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$\omega_0 = \dfrac{1}{\sqrt{L C}} = 2\pi f_0$</strong></div>
+</div>
+
+<h3>Impedancia característica:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$Z_0 = \sqrt{\dfrac{L}{C}}$</strong></div>
+</div>
+
+<h3>Diagrama LC paralelo (resonador):</h3>
+<div class="diagram">
+<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+  <text x="200" y="20" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">Circuito LC Paralelo (Tanque)</text>
+  <!-- Top rail -->
+  <line x1="60" y1="60" x2="340" y2="60" stroke="#333" stroke-width="2"/>
+  <!-- Bottom rail -->
+  <line x1="60" y1="160" x2="340" y2="160" stroke="#333" stroke-width="2"/>
+  <!-- L branch -->
+  <line x1="120" y1="60" x2="120" y2="85" stroke="#333" stroke-width="1.5"/>
+  <path d="M 120 85 Q 130 80 130 90 Q 130 100 140 95 Q 140 85 150 90 Q 150 100 160 95 Q 160 85 170 90 Q 170 100 180 95 Q 180 85 190 90 Q 190 100 200 95" fill="none" stroke="#e65100" stroke-width="2"/>
+  <text x="155" y="115" text-anchor="middle" font-size="10" fill="#e65100">L</text>
+  <line x1="200" y1="60" x2="200" y2="85" stroke="#333" stroke-width="1.5" opacity="0"/>
+  <!-- C branch -->
+  <line x1="240" y1="60" x2="240" y2="95" stroke="#333" stroke-width="1.5"/>
+  <line x1="230" y1="95" x2="250" y2="95" stroke="#0d47a1" stroke-width="2.5"/>
+  <line x1="230" y1="101" x2="250" y2="101" stroke="#0d47a1" stroke-width="2.5"/>
+  <text x="260" y="100" font-size="10" fill="#0d47a1">C</text>
+  <line x1="240" y1="101" x2="240" y2="160" stroke="#333" stroke-width="1.5"/>
+  <!-- L continuation -->
+  <line x1="120" y1="95" x2="120" y2="160" stroke="#333" stroke-width="1.5"/>
+  <!-- Labels -->
+  <text x="60" y="55" text-anchor="middle" font-size="9">+</text>
+  <text x="60" y="172" text-anchor="middle" font-size="9">−</text>
+  <!-- Input -->
+  <text x="30" y="110" text-anchor="middle" font-size="10">Vin</text>
+  <text x="370" y="110" text-anchor="middle" font-size="10">Vout</text>
+</svg>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 ¿Qué ocurre en resonancia?</span>
+  <ul>
+    <li><strong>LC Paralelo</strong>: impedancia máxima a $f_0$ → usado como <em>tanque</em> en osciladores y filtros de banda</li>
+    <li><strong>LC Serie</strong>: impedancia mínima a $f_0$ → usado en <em>notch filters</em> y acoplamiento</li>
+    <li>La energía total se intercambia: $W = \frac{1}{2}LI^2 + \frac{1}{2}CV^2 = \text{constante}$</li>
+  </ul>
+</div>
+
+<h3>Tabla de valores típicos de resonancia:</h3>
+<table>
+  <tr><th>Aplicación</th><th>L</th><th>C</th><th>$f_0$</th></tr>
+  <tr><td>Radio AM</td><td>200 µH</td><td>100–360 pF</td><td>530–1600 kHz</td></tr>
+  <tr><td>Radio FM</td><td>1 µH</td><td>1–20 pF</td><td>88–108 MHz</td></tr>
+  <tr><td>Inverser solar</td><td>10–100 µH</td><td>1–10 µF</td><td>5–50 kHz</td></tr>
+  <tr><td>Wireless power</td><td>1–100 µH</td><td>100–1000 nF</td><td>100–500 kHz</td></tr>
+  <tr><td>Audio subwoofer</td><td>5–20 mH</td><td>50–470 µF</td><td>50–150 Hz</td></tr>
+</table>
+
+<hr style="margin:30px 0; border-color:#ddd;">
+
+<h2 id="cap4-4">4.4 Factor de Calidad (Q)</h2>
+<p>El factor <strong>Q</strong> mide la "selectividad" o agudeza de la resonancia. Un Q alto significa un pico estrecho y pronunciado; un Q bajo significa una respuesta ancha y plana.</p>
+
+<h3>Definición general:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$Q = 2\pi \times \dfrac{\text{Energía almacenada}}{\text{Energía disipada por ciclo}}$</strong></div>
+</div>
+
+<h3>Para circuito LC paralelo con resistencia R:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$Q = R\sqrt{\dfrac{C}{L}} = \dfrac{R}{\omega_0 L} = \dfrac{R}{Z_0}$</strong></div>
+</div>
+
+<h3>Para circuito LC serie:</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$Q = \dfrac{1}{R}\sqrt{\dfrac{L}{C}} = \dfrac{\omega_0 L}{R} = \dfrac{Z_0}{R}$</strong></div>
+</div>
+
+<h3>Ancho de banda (BW):</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$BW = \dfrac{f_0}{Q}$</strong></div>
+  <div class="label">BW = diferencia entre frecuencias donde la potencia cae a la mitad (-3 dB)</div>
+</div>
+
+<h3>Relación Q ↔ Ancho de banda:</h3>
+<div class="diagram">
+<svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="500" height="250" fill="white"/>
+  <!-- Axes -->
+  <line x1="60" y1="220" x2="480" y2="220" stroke="#333" stroke-width="1.5"/>
+  <line x1="60" y1="30" x2="60" y2="220" stroke="#333" stroke-width="1.5"/>
+  <!-- Labels -->
+  <text x="270" y="240" text-anchor="middle" font-size="11" fill="#333">Frecuencia</text>
+  <text x="25" y="125" text-anchor="middle" font-size="11" fill="#333" transform="rotate(-90,25,125)">|H(f)|</text>
+  <!-- f0 marker -->
+  <line x1="270" y1="30" x2="270" y2="220" stroke="#e65100" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="270" y="235" text-anchor="middle" font-size="10" font-weight="bold" fill="#e65100">f₀</text>
+  <!-- Q = 5 curve (narrow, tall) -->
+  <path d="M 60 215 Q 150 210 200 180 Q 230 140 250 80 Q 260 50 270 35 Q 280 50 290 80 Q 310 140 340 180 Q 390 210 420 215 L 480 218" fill="none" stroke="#1565c0" stroke-width="2"/>
+  <text x="350" y="60" font-size="9" fill="#1565c0">Q = 5</text>
+  <!-- Q = 2 curve (wider, shorter) -->
+  <path d="M 60 215 Q 130 212 200 195 Q 240 170 255 130 Q 265 100 270 80 Q 275 100 285 130 Q 300 170 340 195 Q 410 212 480 218" fill="none" stroke="#2e7d32" stroke-width="2"/>
+  <text x="370" y="100" font-size="9" fill="#2e7d32">Q = 2</text>
+  <!-- Q = 0.5 curve (very wide, flat) -->
+  <path d="M 60 215 Q 150 213 220 208 Q 260 200 270 190 Q 280 200 320 208 Q 390 213 480 218" fill="none" stroke="#c62828" stroke-width="2"/>
+  <text x="380" y="170" font-size="9" fill="#c62828">Q = 0.5</text>
+  <!-- -3dB line -->
+  <line x1="60" y1="125" x2="480" y2="125" stroke="#999" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="485" y="129" font-size="8" fill="#996">-3dB</text>
+  <!-- BW annotation for Q=5 -->
+  <line x1="240" y1="125" x2="300" y2="125" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="270" y="140" text-anchor="middle" font-size="8" fill="#1565c0">BW = f₀/Q</text>
+</svg>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Q alto vs Q bajo</span>
+  <ul>
+    <li><strong>Q alto (>10)</strong>: filtro muy selectivo, oscilador estable, pero lento en transitorio</li>
+    <li><strong>Q bajo (&lt;1)</strong>: respuesta sobreamortiguada, sin sobreimpulso, rápido</li>
+    <li><strong>Q = 0.707</strong> (Butterworth): respuesta máximamente plana, compromiso ideal</li>
+  </ul>
+</div>
+
+<hr style="margin:30px 0; border-color:#ddd;">
+
+<h2 id="cap4-5">4.5 Filtro Sallen-Key (Activo de 2º Orden)</h2>
+<p>El filtro <strong>Sallen-Key</strong> es la topología activa más popular para filtros de 2º orden. Usa un amplificador operacional para ganancia y realimentación, logrando pendientes de <strong>-40 dB/década</strong> (el doble que un RC pasivo).</p>
+
+<h3>Topología pasa-bajas Sallen-Key:</h3>
+<div class="diagram">
+<svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+  <text x="250" y="18" text-anchor="middle" font-size="12" font-weight="bold" fill="#0d47a1">Filtro Sallen-Key Pasa-Bajas (2º Orden)</text>
+  <!-- Input -->
+  <text x="25" y="105" text-anchor="middle" font-size="10">Vin</text>
+  <line x1="40" y1="100" x2="80" y2="100" stroke="#333" stroke-width="2"/>
+  <!-- R1 -->
+  <rect x="80" y="90" width="60" height="20" fill="#fff3e0" stroke="#e65100" stroke-width="1.5" rx="2"/>
+  <text x="110" y="104" text-anchor="middle" font-size="10" fill="#e65100">R₁</text>
+  <line x1="140" y1="100" x2="180" y2="100" stroke="#333" stroke-width="2"/>
+  <!-- R2 -->
+  <rect x="180" y="90" width="60" height="20" fill="#fff3e0" stroke="#e65100" stroke-width="1.5" rx="2"/>
+  <text x="210" y="104" text-anchor="middle" font-size="10" fill="#e65100">R₂</text>
+  <line x1="240" y1="100" x2="280" y2="100" stroke="#333" stroke-width="2"/>
+  <!-- C1 to ground from midpoint -->
+  <line x1="210" y1="110" x2="210" y2="140" stroke="#333" stroke-width="1.5"/>
+  <line x1="200" y1="140" x2="220" y2="140" stroke="#0d47a1" stroke-width="2.5"/>
+  <line x1="202" y1="146" x2="218" y2="146" stroke="#0d47a1" stroke-width="2.5"/>
+  <text x="228" y="146" font-size="10" fill="#0d47a1">C₁</text>
+  <line x1="210" y1="146" x2="210" y2="170" stroke="#333" stroke-width="1.5"/>
+  <line x1="204" y1="170" x2="216" y2="170" stroke="#333" stroke-width="1.5"/>
+  <line x1="206" y1="174" x2="214" y2="174" stroke="#333" stroke-width="1.5"/>
+  <line x1="208" y1="178" x2="212" y2="178" stroke="#333" stroke-width="1.5"/>
+  <!-- C2 from opamp input to output -->
+  <line x1="280" y1="100" x2="280" y2="140" stroke="#333" stroke-width="1.5"/>
+  <line x1="270" y1="140" x2="290" y2="140" stroke="#0d47a1" stroke-width="2.5"/>
+  <line x1="272" y1="146" x2="288" y2="146" stroke="#0d47a1" stroke-width="2.5"/>
+  <text x="298" y="146" font-size="10" fill="#0d47a1">C₂</text>
+  <line x1="280" y1="146" x2="280" y2="170" stroke="#333" stroke-width="1.5"/>
+  <line x1="274" y1="170" x2="286" y2="170" stroke="#333" stroke-width="1.5"/>
+  <line x1="276" y1="174" x2="284" y2="174" stroke="#333" stroke-width="1.5"/>
+  <line x1="278" y1="178" x2="282" y2="178" stroke="#333" stroke-width="1.5"/>
+  <!-- OpAmp -->
+  <line x1="280" y1="100" x2="330" y2="100" stroke="#333" stroke-width="2"/>
+  <!-- OpAmp triangle -->
+  <polygon points="330,75 330,125 380,100" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+  <text x="355" y="104" text-anchor="middle" font-size="10" fill="#0d47a1">OA</text>
+  <!-- + input -->
+  <text x="338" y="92" font-size="9" fill="#333">+</text>
+  <!-- Output -->
+  <line x1="380" y1="100" x2="440" y2="100" stroke="#333" stroke-width="2"/>
+  <text x="410" y="92" text-anchor="middle" font-size="10" fill="#2e7d32">Vout</text>
+  <line x1="440" y1="100" x2="470" y2="100" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="470,96 480,100 470,104" fill="#2e7d32"/>
+  <!-- Feedback to - input -->
+  <line x1="380" y1="100" x2="400" y2="100" stroke="#333" stroke-width="1.5"/>
+  <line x1="400" y1="100" x2="400" y2="160" stroke="#333" stroke-width="1.5"/>
+  <line x1="400" y1="160" x2="355" y2="160" stroke="#333" stroke-width="1.5"/>
+  <line x1="355" y1="160" x2="355" y2="118" stroke="#333" stroke-width="1.5"/>
+  <!-- - input -->
+  <text x="342" y="115" font-size="9" fill="#333">−</text>
+  <!-- Gain resistors -->
+  <rect x="335" y="155" width="40" height="16" fill="#fff3e0" stroke="#e65100" stroke-width="1" rx="2"/>
+  <text x="355" y="167" text-anchor="middle" font-size="8" fill="#e65100">Rf</text>
+  <line x1="355" y1="171" x2="355" y2="185" stroke="#333" stroke-width="1.5"/>
+  <line x1="349" y1="185" x2="361" y2="185" stroke="#333" stroke-width="1.5"/>
+  <line x1="351" y1="189" x2="359" y2="189" stroke="#333" stroke-width="1.5"/>
+  <line x1="353" y1="193" x2="357" y2="193" stroke="#333" stroke-width="1.5"/>
+</svg>
+</div>
+
+<h3>Función de transferencia (Sallen-Key pasa-bajas):</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$H(s) = \dfrac{K}{s^2 R_1 R_2 C_1 C_2 + s[R_1 C_1 + R_2 C_1 + R_1 C_2(1-K)] + 1}$</strong></div>
+  <div class="label">$K = 1 + \frac{R_f}{R_g}$ = ganancia DC del OpAmp</div>
+</div>
+
+<h3>Caso simplificado ($R_1 = R_2 = R$, $C_1 = C_2 = C$):</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$f_c = \dfrac{1}{2\pi R C}$</strong></div>
+</div>
+<div class="formula">
+  <div class="formula-box"><strong>$Q = \dfrac{1}{3 - K}$</strong></div>
+  <div class="label">Para Butterworth (Q = 0.707): $K = 3 - \frac{1}{Q} = 1.586$</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">📐 Diseño práctico Sallen-Key</span>
+  <ol>
+    <li>Elegir $f_c$ deseada</li>
+    <li>Seleccionar $C_1$ (valor estándar, típicamente 1nF–100nF)</li>
+    <li>Calcular $R = \frac{1}{2\pi f_c C}$</li>
+    <li>Elegir Q deseado (0.707 Butterworth, 0.577 Bessel, 1.0 Chebyshev)</li>
+    <li>Calcular ganancia $K = 3 - \frac{1}{Q}$</li>
+    <li>Con $K = 1 + R_f/R_g$, elegir $R_g$ y calcular $R_f$</li>
+  </ol>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Limitación importante</span>
+  El Sallen-Key estable requiere $K &lt; 3$. Si $K \geq 3$, $Q \to \infty$ → oscilación. Nunca usar ganancia ≥ 3 en esta topología sin compensación.
+</div>
+
+<h3>Comparación de filtros de 2º orden:</h3>
+<table>
+  <tr><th>Tipo</th><th>Q</th><th>Respuesta</th><th>Rizado en banda</th></tr>
+  <tr><td>Butterworth</td><td>0.707</td><td>Máximamente plana</td><td>0 dB</td></tr>
+  <tr><td>Bessel</td><td>0.577</td><td>Retardo constante</td><td>0 dB</td></tr>
+  <tr><td>Chebyshev (1dB)</td><td>0.956</td><td>Pendiente máxima</td><td>1 dB</td></tr>
+  <tr><td>Linkwitz-Riley</td><td>0.500</td><td>Cruce perfecto</td><td>0 dB</td></tr>
+</table>
+
+<hr style="margin:30px 0; border-color:#ddd;">
+
+<h2 id="cap4-6">4.6 Calculadora Interactiva de Filtros RC</h2>
+<p>Introduce los valores de R y C para calcular la frecuencia de corte y constante de tiempo:</p>
+
+<div class="calc">
+  <h4>🧮 Calculadora de Filtro RC</h4>
+  <div class="calc-row">
+    <label>Tipo de filtro:</label>
+    <select id="rc-type">
+      <option value="lp">Pasa-bajas (Low-Pass)</option>
+      <option value="hp">Pasa-altas (High-Pass)</option>
+    </select>
+  </div>
+  <div class="calc-row">
+    <label>Resistencia R:</label>
+    <input type="number" id="rc-r" value="10" min="0.001" step="any">
+    <select id="rc-r-unit">
+      <option value="1">Ω</option>
+      <option value="k" selected>kΩ</option>
+      <option value="M">MΩ</option>
+    </select>
+  </div>
+  <div class="calc-row">
+    <label>Capacitancia C:</label>
+    <input type="number" id="rc-c" value="100" min="0.001" step="any">
+    <select id="rc-c-unit">
+      <option value="p">pF</option>
+      <option value="n" selected>nF</option>
+      <option value="u">µF</option>
+    </select>
+  </div>
+  <div class="calc-row">
+    <button onclick="calcRC()" style="padding:8px 20px; background:#1565c0; color:white; border:none; border-radius:4px; cursor:pointer; font-size:10pt;">Calcular</button>
+  </div>
+  <div class="calc-result" id="rc-result">
+    <div class="value">Introduce valores y pulsa Calcular</div>
+  </div>
+</div>
+
+<div class="box box-success">
+  <span class="box-title">🎯 Ejemplo práctico</span>
+  <strong>Filtro anti-aliasing</strong> antes de un ADC a 10 kSPS:<br>
+  $f_s = 10\text{ kSPS}$ → $f_{Nyquist} = 5\text{ kHz}$ → $f_c \approx 4\text{ kHz}$<br>
+  Con $R = 10\text{ kΩ}$: $C = \frac{1}{2\pi \cdot 10000 \cdot 4000} = 3.98\text{ nF}$ → usar <strong>3.9 nF</strong><br>
+  Atenuación a $f_s/2 = 5\text{ kHz}$: $-7\text{ dB}$ (suficiente para ADC de 8 bits)
+</div>
+
+<h3>Resumen de fórmulas del capítulo:</h3>
+<table>
+  <tr><th>Concepto</th><th>Fórmula</th><th>Unidades</th></tr>
+  <tr><td>fc RC pasa-bajas</td><td>$f_c = \frac{1}{2\pi R C}$</td><td>Hz</td></tr>
+  <tr><td>fc RC pasa-altas</td><td>$f_c = \frac{1}{2\pi R C}$</td><td>Hz</td></tr>
+  <tr><td>Constante de tiempo</td><td>$\tau = R C$</td><td>s</td></tr>
+  <tr><td>Resonancia LC</td><td>$f_0 = \frac{1}{2\pi\sqrt{LC}}$</td><td>Hz</td></tr>
+  <tr><td>Q (LC paralelo)</td><td>$Q = R\sqrt{C/L}$</td><td>adimensional</td></tr>
+  <tr><td>Ancho de banda</td><td>$BW = f_0 / Q$</td><td>Hz</td></tr>
+  <tr><td>Sallen-Key Q</td><td>$Q = 1/(3-K)$</td><td>adimensional</td></tr>
+</table>
+
+<script src='../js/app.js'></script>
+<script>
+// Auto-calculate on page load
+window.addEventListener('load', function() { calcRC(); });
+</script>
+</body>
+</html>

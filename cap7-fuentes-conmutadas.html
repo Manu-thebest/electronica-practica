@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 7 — Fuentes Conmutadas (SMPS) | Electrónica Práctica v2</title>
+<link rel="stylesheet" href="css/style.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\\\]']]}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<script src="js/app.js"></script>
+<style>
+  .svg-label { font-family: 'Segoe UI', sans-serif; font-size: 11px; fill: #333; }
+  .svg-title { font-family: 'Segoe UI', sans-serif; font-size: 13px; font-weight: bold; fill: #1565c0; }
+  .svg-wire { stroke: #333; stroke-width: 2; fill: none; }
+  .svg-component { stroke: #1565c0; stroke-width: 2; fill: #e3f2fd; }
+  .svg-current { stroke: #e65100; stroke-width: 2; fill: none; stroke-dasharray: 6,3; }
+  .svg-arrow { fill: #e65100; }
+  .svg-node { fill: #333; }
+  .topo-box { border: 2px solid #1565c0; border-radius: 8px; padding: 15px; margin: 15px 0; background: #f8f9fa; }
+  .topo-title { font-weight: bold; color: #0d47a1; font-size: 14pt; margin-bottom: 10px; }
+  .formula-box { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 10px 15px; margin: 10px 0; font-family: 'Consolas', monospace; }
+  .calc-result { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; padding: 12px; margin: 10px 0; font-family: 'Consolas', monospace; font-size: 10pt; }
+  .calc-result .value { margin: 4px 0; }
+  .table-container { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9.5pt; }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
+  th { background: #1565c0; color: white; }
+  tr:nth-child(even) { background: #f9f9f9; }
+  .calc-section { background: #fffde7; border: 1px solid #fbc02d; border-radius: 8px; padding: 20px; margin: 20px 0; }
+  .calc-section h3 { color: #f57f17; margin-top: 0; }
+  .calc-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  .calc-row label { min-width: 180px; font-weight: bold; font-size: 10pt; }
+  .calc-row input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; width: 100px; font-family: 'Consolas', monospace; }
+  .calc-row select { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; }
+  .calc-btn { background: #f57f17; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  .calc-btn:hover { background: #e65100; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<div class="cover">
+  <div class="icon">⚡</div>
+  <h1>Capítulo 7</h1>
+  <h2>Fuentes Conmutadas (SMPS)</h2>
+  <div class="meta">
+    Electrónica Práctica — Guía Completa v2<br>
+    Topologías, cálculo de inductancias y condensadores, diseño de transformadores
+  </div>
+</div>
+
+<!-- ============================ TOC ============================ -->
+<div class="toc">
+  <h2>📋 Tabla de Contenido — Capítulo 7</h2>
+  <ul>
+    <li><a href="#teoria"><span class="num">7.1</span> Teoría de Conmutación PWM</a></li>
+    <li><a href="#buck"><span class="num">7.2</span> Topología Buck (Reductora)</a></li>
+    <li><a href="#boost"><span class="num">7.3</span> Topología Boost (Elevadora)</a></li>
+    <li><a href="#buck-boost"><span class="num">7.4</span> Buck-Boost (Invertida)</a></li>
+    <li><a href="#flyback"><span class="num">7.5</span> Flyback (Aislada)</a></li>
+    <li><a href="#forward"><span class="num">7.6</span> Forward (Aislada con reset)</a></li>
+    <li><a href="#push-pull"><span class="num">7.7</span> Push-Pull (Bilateral)</a></li>
+    <li><a href="#half-bridge"><span class="num">7.8</span> Half-Bridge (Media puente)</a></li>
+    <li><a href="#full-bridge"><span class="num">7.9</span> Full-Bridge (Puente completo)</a></li>
+    <li><a href="#comparativa"><span class="num">7.10</span> Tabla Comparativa</a></li>
+    <li><a href="#calculadoras"><span class="num">7.11</span> Calculadoras</a></li>
+    <li><a href="#resumen"><span class="num">7.12</span> Resumen</a></li>
+    <li><a href="#errores"><span class="num">7.13</span> Errores Comunes</a></li>
+  </ul>
+</div>
+
+<!-- ============================ TEORÍA PWM ============================ -->
+<h1 id="teoria">7.1 Teoría de Conmutación PWM</h1>
+
+<h2>Principio de Operación</h2>
+<p>Las fuentes conmutadas (Switched-Mode Power Supplies, SMPS) convierten potencia eléctrica de forma eficiente mediante la conmutación rápida de dispositivos semiconductores (MOSFETs, IGBTs) entre los estados de <strong>encendido</strong> (ON) y <strong>apagado</strong> (OFF). A diferencia de los reguladores lineales que disipan el exceso de potencia en forma de calor, las SMPS alcanzan eficiencias del <strong>85-95%</strong>.</p>
+
+<div class="formula">
+  <div class="formula-box">$$D = \frac{t_{ON}}{T} = \frac{t_{ON}}{t_{ON} + t_{OFF}}$$</div>
+  <div class="label">Donde: \(D\) = Duty Cycle [0 a 1], \(t_{ON}\) = tiempo encendido [s], \(T\) = período [s]</div>
+</div>
+
+<h2>Frecuencia de Conmutación</h2>
+<p>La frecuencia de conmutación (\(f_{sw}\)) típicamente está en el rango de <strong>100 kHz a 2 MHz</strong>. Una frecuencia más alta permite componentes magnéticos más pequeños pero aumenta las pérdidas por conmutación.</p>
+
+<div class="box box-info">
+  <span class="box-title">💡 ¿Por qué alta frecuencia?</span>
+  Al aumentar \(f_{sw}\), la energía almacenada por ciclo es menor, reduciendo el tamaño requerido del inductor y condensador de salida. Sin embargo, las pérdidas por conmutación (\(\frac{1}{2} V \cdot I \cdot (t_r + t_f) \cdot f_{sw}\)) crecen linealmente.
+</div>
+
+<div class="diagram">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <text class="svg-title" x="300" y="20" text-anchor="middle">Señal PWM y Ciclo de Trabajo</text>
+  <!-- Grid -->
+  <line x1="50" y1="250" x2="580" y2="250" stroke="#333" stroke-width="1"/>
+  <line x1="50" y1="50" x2="580" y2="50" stroke="#ddd" stroke-width="1"/>
+  <line x1="50" y1="150" x2="580" y2="150" stroke="#ddd" stroke-width="1"/>
+  <!-- PWM Signal -->
+  <polyline fill="none" stroke="#1565c0" stroke-width="3" points="50,50 50,250 50,50 200,50 200,250 200,50 350,50 350,250 500,250 500,50 580,50"/>
+  <!-- Labels -->
+  <text class="svg-label" x="125" y="35" text-anchor="middle" fill="#1565c0">D·T</text>
+  <text class="svg-label" x="425" y="35" text-anchor="middle" fill="#666">(1-D)·T</text>
+  <line x1="50" y1="70" x2="200" y2="70" stroke="#e65100" stroke-width="1" stroke-dasharray="4,2"/>
+  <text class="svg-label" x="125" y="80" text-anchor="middle" fill="#e65100">tON</text>
+  <line x1="200" y1="70" x2="500" y2="70" stroke="#e65100" stroke-width="1" stroke-dasharray="4,2"/>
+  <text class="svg-label" x="350" y="80" text-anchor="middle" fill="#e65100">tOFF</text>
+  <line x1="50" y1="270" x2="580" y2="270" stroke="#333" stroke-width="1"/>
+  <text class="svg-label" x="315" y="285" text-anchor="middle">T = 1/fsw</text>
+  <text class="svg-label" x="315" y="265" text-anchor="middle" fill="#666">Período</text>
+</svg>
+</div>
+
+<!-- ============================ BUCK ============================ -->
+<h1 id="buck">7.2 Topología Buck (Reductora)</h1>
+<p>La topología Buck reduce el voltaje de entrada. Es la más común para regulación DC-DC no aislada.</p>
+
+<div class="topo-box">
+  <div class="topo-title">Buck Converter</div>
+  <div class="diagram">
+  <svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg">
+    <!-- Vin -->
+    <line x1="50" y1="50" x2="50" y2="150" class="svg-wire"/>
+    <line x1="50" y1="100" x2="100" y2="100" class="svg-wire"/>
+    <!-- MOSFET -->
+    <rect x="100" y="90" width="60" height="20" class="svg-component"/>
+    <text class="svg-label" x="130" y="85" text-anchor="middle">Q (MOSFET)</text>
+    <line x1="160" y1="100" x2="200" y2="100" class="svg-wire"/>
+    <!-- Diode (freewheel) -->
+    <line x1="200" y1="100" x2="200" y2="180" class="svg-wire"/>
+    <line x1="190" y1="180" x2="210" y2="180" stroke="#333" stroke-width="2"/>
+    <line x1="210" y1="180" x2="190" y2="200" stroke="#333" stroke-width="2"/>
+    <line x1="190" y1="200" x2="210" y2="200" stroke="#333" stroke-width="2"/>
+    <line x1="200" y1="200" x2="200" y2="220" class="svg-wire"/>
+    <line x1="200" y1="220" x2="50" y2="220" class="svg-wire"/>
+    <line x1="50" y1="220" x2="50" y2="150" class="svg-wire"/>
+    <!-- Inductor -->
+    <line x1="200" y1="100" x2="280" y2="100" class="svg-wire"/>
+    <path d="M280,95 Q290,75 300,95 Q310,115 320,95 Q330,75 340,95 Q350,115 360,95 Q370,75 380,95" fill="none" stroke="#1565c0" stroke-width="2"/>
+    <text class="svg-label" x="325" y="70" text-anchor="middle">L</text>
+    <line x1="380" y1="100" x2="450" y2="100" class="svg-wire"/>
+    <!-- Capacitor -->
+    <line x1="450" y1="100" x2="450" y2="140" class="svg-wire"/>
+    <line x1="435" y1="140" x2="465" y2="140" stroke="#1565c0" stroke-width="2"/>
+    <line x1="435" y1="155" x2="465" y2="155" stroke="#1565c0" stroke-width="2"/>
+    <line x1="450" y1="155" x2="450" y2="170" class="svg-wire"/>
+    <line x1="450" y1="170" x2="200" y2="170" class="svg-wire"/>
+    <!-- Vout -->
+    <line x1="450" y1="130" x2="480" y2="130" class="svg-wire"/>
+    <line x1="450" y1="165" x2="480" y2="165" class="svg-wire"/>
+    <text class="svg-label" x="485" y="150" fill="#e65100">Vout</text>
+    <!-- Labels -->
+    <circle cx="50" cy="150" r="3" class="svg-node"/>
+    <text class="svg-label" x="40" y="155" text-anchor="end">Vin</text>
+    <line x1="130" y1="110" x2="130" y2="130" class="svg-current"/>
+    <text class="svg-label" x="110" y="145" fill="#e65100">Iin</text>
+  </svg>
+  </div>
+</div>
+
+<h3>Fórmulas del Buck</h3>
+<div class="formula">
+  <div class="formula-box">$$V_{out} = D \times V_{in}$$</div>
+</div>
+
+<div class="formula">
+  <div class="formula-box">$$L_{min} = \frac{(V_{in} - V_{out}) \cdot D}{f_{sw} \cdot \Delta I_L}$$</div>
+  <div class="label">Donde \(\Delta I_L\) es la corriente ripple (típicamente 20-40% de Iout)</div>
+</div>
+
+<div class="formula">
+  <div class="formula-box">$$C_{out} = \frac{\Delta I_L}{8 \cdot f_{sw} \cdot \Delta V_{out}} = \frac{\Delta I_L}{8 \cdot f_{sw} \cdot (V_{out} \cdot \text{ripple}\%)}$$</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Funcionamiento</span>
+  <p><strong>ON (MOSFET cerrado):</strong> La corriente fluye desde Vin a través del inductor L, almacenando energía en su campo magnético. El inductor suministra corriente a la carga y carga Cout.</p>
+  <p><strong>OFF (MOSFET abierto):</strong> El inductor mantiene el flujo de corriente a través del diodo de rueda libre (freewheel). Cout suaviza el voltaje de salida.</p>
+</div>
+
+<!-- ============================ BOOST ============================ -->
+<h1 id="boost">7.3 Topología Boost (Elevadora)</h1>
+<p>La topología Boost eleva el voltaje por encima del de entrada. Común en PFC (Power Factor Correction) y drivers LED.</p>
+
+<div class="topo-box">
+  <div class="topo-title">Boost Converter</div>
+  <div class="diagram">
+  <svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg">
+    <line x1="50" y1="130" x2="150" y2="130" class="svg-wire"/>
+    <text class="svg-label" x="40" y="135" text-anchor="end">Vin</text>
+    <!-- Inductor -->
+    <path d="M150,125 Q160,105 170,125 Q180,145 190,125 Q200,105 210,125 Q220,145 230,125 Q240,105 250,125" fill="none" stroke="#1565c0" stroke-width="2"/>
+    <text class="svg-label" x="200" y="100" text-anchor="middle">L</text>
+    <line x1="250" y1="130" x2="300" y2="130" class="svg-wire"/>
+    <!-- MOSFET to ground -->
+    <line x1="300" y1="130" x2="300" y2="140" class="svg-wire"/>
+    <rect x="280" y="140" width="40" height="20" class="svg-component"/>
+    <text class="svg-label" x="300" y="155" text-anchor="middle">Q</text>
+    <line x1="300" y1="160" x2="300" y2="200" class="svg-wire"/>
+    <line x1="300" y1="200" x2="50" y2="200" class="svg-wire"/>
+    <line x1="50" y1="200" x2="50" y2="130" class="svg-wire"/>
+    <!-- Diode -->
+    <line x1="300" y1="130" x2="350" y2="130" class="svg-wire"/>
+    <circle cx="350" cy="130" r="2" class="svg-node"/>
+    <line x1="345" y1="125" x2="365" y2="125" stroke="#333" stroke-width="2"/>
+    <line x1="345" y1="125" x2="345" y2="135" stroke="#333" stroke-width="2"/>
+    <line x1="365" y1="125" x2="365" y2="135" stroke="#333" stroke-width="2"/>
+    <line x1="365" y1="130" x2="400" y2="130" class="svg-wire"/>
+    <!-- Capacitor & Load -->
+    <line x1="400" y1="130" x2="400" y2="145" class="svg-wire"/>
+    <line x1="385" y1="145" x2="415" y2="145" stroke="#1565c0" stroke-width="2"/>
+    <line x1="385" y1="160" x2="415" y2="160" stroke="#1565c0" stroke-width="2"/>
+    <line x1="400" y1="160" x2="400" y2="175" class="svg-wire"/>
+    <line x1="400" y1="175" x2="300" y2="175" class="svg-wire"/>
+    <line x1="300" y1="175" x2="300" y2="200" class="svg-wire"/>
+    <!-- Vout label -->
+    <text class="svg-label" x="425" y="155" fill="#e65100">Vout</text>
+    <line x1="400" y1="147" x2="420" y2="147" class="svg-wire"/>
+    <line x1="400" y1="158" x2="420" y2="158" class="svg-wire"/>
+  </svg>
+  </div>
+</div>
+
+<h3>Fórmulas del Boost</h3>
+<div class="formula">
+  <div class="formula-box">$$V_{out} = \frac{V_{in}}{1 - D}$$</div>
+</div>
+
+<div class="formula">
+  <div class="formula-box">$$L_{min} = \frac{V_{in} \cdot D}{f_{sw} \cdot \Delta I_L} \quad ; \quad \Delta I_L \approx 0.3 \cdot I_{in} = 0.3 \cdot \frac{I_{out}}{1-D}$$</div>
+</div>
+
+<div class="formula">
+  <div class="formula-box">$$C_{out} = \frac{I_{out} \cdot D}{f_{sw} \cdot \Delta V_{out}}$$</div>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Limitación del Boost</span>
+  A medida que D → 1, Vout → ∞ en la fórmula ideal, pero en la práctica las pérdidas parásitas limitan la ganancia máxima. Típicamente no se supera D > 0.85. Si hay cortocircuito de salida, la corriente del inductor crece sin límite (no hay diodo en serie con Vin para bloquearla).
+</div>
+
+<!-- ============================ BUCK-BOOST ============================ -->
+<h1 id="buck-boost">7.4 Topología Buck-Boost</h1>
+<p>Genera un voltaje de salida con polaridad invertida respecto a la entrada. Útil cuando se necesita voltaje negativo.</p>
+
+<div class="formula">
+  <div class="formula-box">$$V_{out} = -V_{in} \cdot \frac{D}{1 - D}$$</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Características Buck-Boost</span>
+  <ul>
+    <li>La polaridad de salida es <strong>invertida</strong></li>
+    <li>Puede operar como Buck (D < 0.5) o Boost (D > 0.5)</li>
+    <li>En D = 0.5, teóricamente |Vout| = Vin</li>
+    <li>Requiere driver high-side o configuración separada</li>
+  </ul>
+</div>
+
+<!-- ============================ FLYBACK ============================ -->
+<h1 id="flyback">7.5 Topología Flyback (Aislada)</h1>
+<p>El Flyback es la topología SMPS aislada más económica para potencias bajas (< 100W). Utiliza un transformador que actúa como inductor acoplado.</p>
+
+<div class="topo-box">
+  <div class="topo-title">Flyback Converter</div>
+  <div class="diagram">
+  <svg viewBox="0 0 580 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Primary side -->
+    <text class="svg-label" x="40" y="50" fill="#999">Primario</text>
+    <line x1="80" y1="130" x2="130" y2="130" class="svg-wire"/>
+    <rect x="130" y="120" width="80" height="20" class="svg-component"/>
+    <text class="svg-label" x="170" y="138" text-anchor="middle">Q</text>
+    <line x1="210" y1="130" x2="240" y2="130" class="svg-wire"/>
+    <line x1="240" y1="130" x2="240" y2="180" class="svg-wire"/>
+    <circle cx="240" cy="180" r="15" stroke="#1565c0" stroke-width="2" fill="none"/>
+    <line x1="255" y1="180" x2="290" y2="180" class="svg-wire"/>
+    <line x1="80" y1="180" x2="225" y2="180" class="svg-wire"/>
+    <line x1="80" y1="130" x2="80" y2="180" class="svg-wire"/>
+    <text class="svg-label" x="70" y="160" text-anchor="end">Vin</text>
+    <!-- Transformer core -->
+    <line x1="240" y1="165" x2="240" y2="195" stroke="#333" stroke-width="3"/>
+    <line x1="290" y1="165" x2="290" y2="195" stroke="#333" stroke-width="3"/>
+    <text class="svg-label" x="265" y="160" text-anchor="middle">Np:Ns</text>
+    <!-- Secondary side -->
+    <text class="svg-label" x="320" y="50" fill="#999">Secundario</text>
+    <line x1="290" y1="180" x2="340" y2="180" class="svg-wire"/>
+    <line x1="340" y1="175" x2="340" y2="185" stroke="#333" stroke-width="2"/>
+    <line x1="340" y1="175" x2="360" y2="175" stroke="#333" stroke-width="2"/>
+    <line x1="340" y1="185" x2="360" y2="185" stroke="#333" stroke-width="2"/>
+    <line x1="360" y1="180" x2="400" y2="180" class="svg-wire"/>
+    <line x1="400" y1="180" x2="400" y2="145" class="svg-wire"/>
+    <line x1="385" y1="145" x2="415" y2="145" stroke="#1565c0" stroke-width="2"/>
+    <line x1="385" y1="160" x2="415" y2="160" stroke="#1565c0" stroke-width="2"/>
+    <line x1="400" y1="160" x2="400" y2="175" class="svg-wire"/>
+    <line x1="400" y1="180" x2="400" y2="220" class="svg-wire"/>
+    <line x1="400" y1="220" x2="290" y2="220" class="svg-wire"/>
+    <line x1="290" y1="220" x2="290" y2="195" class="svg-wire"/>
+    <text class="svg-label" x="425" y="155" fill="#e65100">Vout</text>
+    <!-- Isolation line -->
+    <line x1="300" y1="30" x2="300" y2="250" stroke="#f57f17" stroke-width="1" stroke-dasharray="8,4"/>
+    <text class="svg-label" x="300" y="265" text-anchor="middle" fill="#f57f17">Aislamiento galvánico</text>
+  </svg>
+  </div>
+</div>
+
+<h3>Fórmulas del Flyback</h3>
+<div class="formula">
+  <div class="formula-box">$$V_{out} = V_{in} \cdot \frac{D}{1-D} \cdot \frac{N_s}{N_p}$$</div>
+</div>
+
+<div class="formula">
+  <div class="formula-box">$$L_p = \frac{V_{in(min)} \cdot D_{max}}{f_{sw} \cdot \Delta I_p}$$</div>
+  <div class="label">Inductancia del primario (energía almacenada: \(E = \frac{1}{2} L_p I_p^2\))</div>
+</div>
+
+<h3>Diseño del Transformador Flyback</h3>
+<div class="box box-info">
+  <span class="box-title">💡 Pasos de diseño</span>
+  <ol>
+    <li>Definir relación de espiras: \(N = \frac{N_s}{N_p} = \frac{V_{out} \cdot (1-D_{max})}{V_{in(min)} \cdot D_{max}}\)</li>
+    <li>Calcular inductancia primaria \(L_p\) para ripple deseado</li>
+    <li>Seleccionar núcleo: \(A_e \cdot A_w \geq \frac{L_p \cdot I_{p,peak}^2}{B_{max} \cdot K_u \cdot J}\) (área efectiva × ventana)</li>
+    <li>Calcular espiras: \(N_p = \frac{L_p \cdot I_{p,peak}}{B_{max} \cdot A_e}\)</li>
+    <li>Añadir entrehierro (gap) para evitar saturación: \(l_g = \frac{\mu_0 \cdot N_p^2 \cdot A_e}{L_p}\)</li>
+  </ol>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Clamp de voltaje</span>
+  El Flyback SIEMPRE requiere un circuito clamp (RCD o TVS) en el primario para limitar el pico de voltaje por la inductancia de fuga del transformador: \(V_{spike} = V_{in} + V_{clamp} + V_{flyback}\). Sin esto, el MOSFET se destruye.
+</div>
+
+<!-- ============================ FORWARD ============================ -->
+<h1 id="forward">7.6 Topología Forward</h1>
+<p>Similar al Flyback pero entrega energía durante el tiempo ON. Más eficiente para potencias medias (50-500W).</p>
+
+<div class="formula">
+  <div class="formula-box">$$V_{out} = D \cdot V_{in} \cdot \frac{N_s}{N_p}$$</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Bobina de Reset (Reset Winding)</span>
+  <p>El transformador Forward necesita un devanado de reset (tercer devanado) para desmagnetizar el núcleo durante el tiempo OFF. Sin reset, el núcleo satura en un solo ciclo.</p>
+  <p><strong>Relación óptima:</strong> \(N_{reset} = N_p\) (reset 1:1). El duty cycle máximo es entonces \(D_{max} = 0.5\).</p>
+  <p>Alternativamente, se puede usar reset con diodo RCD (Clamp) que permite \(D_{max} > 0.5\) pero con mayor estrés en el MOSFET.</p>
+</div>
+
+<!-- ============================ PUSH-PULL ============================ -->
+<h1 id="push-pull">7.7 Topología Push-Pull</h1>
+<p>Utiliza dos MOSFETs operando en contrafase. El transformador se excita bilateralmente (cuadrante I y III de la curva B-H).</p>
+
+<div class="formula">
+  <div class="formula-box">$$V_{out} = 2 \cdot D \cdot V_{in} \cdot \frac{N_s}{N_p}$$</div>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Dead-Time</span>
+  <p>Los dos MOSFETs NUNCA deben conducir simultáneamente. Se inserta un <strong>dead-time</strong> (tiempo muerto, típicamente 50-200ns) entre el apagado de uno y el encendido del otro.</p>
+  <p>Sin dead-time, ocurre <strong>shoot-through</strong>: ambos MOSFETs crean un cortocircuito directo a través de Vin → destrucción instantánea.</p>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Ventajas Push-Pull</span>
+  <ul>
+    <li>Utiliza todo el ciclo B-H del transformador (mayor densidad de potencia)</li>
+    <li>Frecuencia de ripple en salida = \(2 \cdot f_{sw}\) (más fácil de filtrar)</li>
+    <li>Ideal para potencias medias-altas (100W - 1kW)</li>
+  </ul>
+</div>
+
+<!-- ============================ HALF-BRIDGE ============================ -->
+<h1 id="half-bridge">7.8 Topología Half-Bridge (Media Puente)</h1>
+<p>Usa dos MOSFETs con el punto medio del transformador referenciado a Vin/2 (dividido por dos condensadores).</p>
+
+<div class="formula">
+  <div class="formula-box">$$V_{out} = D \cdot V_{in} \cdot \frac{N_s}{N_p}$$</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Características Half-Bridge</span>
+  <ul>
+    <li>El voltaje aplicado al transformador es \(V_{in}/2\) (la mitad)</li>
+    <li>Los MOSFETs solo bloquean \(V_{in}\) (no \(2\cdot V_{in}\) como en Full-Bridge)</li>
+    <li>Requiere divisor capacitivo de entrada balanceado</li>
+    <li>Ideal para 200W - 2kW</li>
+  </ul>
+</div>
+
+<!-- ============================ FULL-BRIDGE ============================ -->
+<h1 id="full-bridge">7.9 Topología Full-Bridge (Puente Completo)</h1>
+<p>Cuatro MOSFETs en configuración H-bridge. La máxima potencia entre las topologías aisladas.</p>
+
+<div class="formula">
+  <div class="formula-box">$$V_{out} = 2 \cdot D \cdot V_{in} \cdot \frac{N_s}{N_p}$$</div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Full-Bridge</span>
+  <ul>
+    <li>Aplica \(V_{in}\) completo al transformador (alternando diagonalmente)</li>
+    <li>Los MOSFETs bloquean \(V_{in}\) cada uno</li>
+    <li>Control: pares diagonales (Q1,Q4) y (Q2,Q3) alternados</li>
+    <li>Ideal para 500W - 10kW+</li>
+    <li>Puede operar con desfase (Phase-Shift) para conmutación ZVS</li>
+  </ul>
+</div>
+
+<!-- ============================ TABLA COMPARATIVA ============================ -->
+<h1 id="comparativa">7.10 Tabla Comparativa de Topologías</h1>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+  <th>Topología</th>
+  <th>Vout (fórmula)</th>
+  <th>Potencia típica</th>
+  <th>Aislamiento</th>
+  <th>Riple entrada</th>
+  <th>Complejidad</th>
+  <th>Eficiencia</th>
+  <th>Aplicaciones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Buck</strong></td>
+  <td>\(D \cdot V_{in}\)</td>
+  <td>1W - 300W</td>
+  <td>No</td>
+  <td>Pulsante</td>
+  <td>Baja</td>
+  <td>90-95%</td>
+  <td>Regulación DC-DC, CPU, LED</td>
+</tr>
+<tr>
+  <td><strong>Boost</strong></td>
+  <td>\(V_{in}/(1-D)\)</td>
+  <td>1W - 500W</td>
+  <td>No</td>
+  <td>Continuo</td>
+  <td>Baja</td>
+  <td>85-93%</td>
+  <td>PFC, drivers LED, baterías</td>
+</tr>
+<tr>
+  <td><strong>Buck-Boost</strong></td>
+  <td>\(-V_{in} \cdot D/(1-D)\)</td>
+  <td>1W - 150W</td>
+  <td>No</td>
+  <td>Pulsante</td>
+  <td>Media</td>
+  <td>80-90%</td>
+  <td>Polaridad negativa, baterías</td>
+</tr>
+<tr>
+  <td><strong>Flyback</strong></td>
+  <td>\(V_{in} \cdot \frac{D}{1-D} \cdot N_s/N_p\)</td>
+  <td>1W - 100W</td>
+  <td>Sí</td>
+  <td>Pulsante</td>
+  <td>Baja</td>
+  <td>75-88%</td>
+  <td>Cargadores, standby, fuentes pequeñas</td>
+</tr>
+<tr>
+  <td><strong>Forward</strong></td>
+  <td>\(D \cdot V_{in} \cdot N_s/N_p\)</td>
+  <td>50W - 500W</td>
+  <td>Sí</td>
+  <td>Pulsante</td>
+  <td>Media</td>
+  <td>85-92%</td>
+  <td>Fuentes industriales, telecom</td>
+</tr>
+<tr>
+  <td><strong>Push-Pull</strong></td>
+  <td>\(2D \cdot V_{in} \cdot N_s/N_p\)</td>
+  <td>100W - 1kW</td>
+  <td>Sí</td>
+  <td>Pulsante (2×fsw)</td>
+  <td>Media-Alta</td>
+  <td>85-93%</td>
+  <td>Inversores, fuentes automotrices</td>
+</tr>
+<tr>
+  <td><strong>Half-Bridge</strong></td>
+  <td>\(D \cdot V_{in} \cdot N_s/N_p\)</td>
+  <td>200W - 2kW</td>
+  <td>Sí</td>
+  <td>Pulsante (2×fsw)</td>
+  <td>Alta</td>
+  <td>88-94%</td>
+  <td>Servidores, fuentes soldadura</td>
+</tr>
+<tr>
+  <td><strong>Full-Bridge</strong></td>
+  <td>\(2D \cdot V_{in} \cdot N_s/N_p\)</td>
+  <td>500W - 10kW+</td>
+  <td>Sí</td>
+  <td>Pulsante (2×fsw)</td>
+  <td>Muy Alta</td>
+  <td>90-96%</td>
+  <td>Industrial, tracción, UPS</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============================ CALCULADORAS ============================ -->
+<h1 id="calculadoras">7.11 Calculadoras</h1>
+
+<div class="calc-section">
+  <h3>📐 Calculadora Buck</h3>
+  <div class="calc-row">
+    <label>Vin (V):</label>
+    <input type="number" id="buck-vin" value="12" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>Vout (V):</label>
+    <input type="number" id="buck-vout" value="5" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>Iout (A):</label>
+    <input type="number" id="buck-iout" value="2" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>fsw (kHz):</label>
+    <input type="number" id="buck-fsw" value="300" step="10">
+  </div>
+  <div class="calc-row">
+    <label>Riple (% de Iout):</label>
+    <input type="number" id="buck-ripple" value="30" step="5">
+  </div>
+  <button class="calc-btn" onclick="calcBuck()">Calcular Buck</button>
+  <div class="calc-result" id="buck-result"></div>
+</div>
+
+<div class="calc-section">
+  <h3>📐 Calculadora Boost</h3>
+  <div class="calc-row">
+    <label>Vin (V):</label>
+    <input type="number" id="boost-vin" value="5" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>Vout (V):</label>
+    <input type="number" id="boost-vout" value="12" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>Iout (A):</label>
+    <input type="number" id="boost-iout" value="1" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>fsw (kHz):</label>
+    <input type="number" id="boost-fsw" value="300" step="10">
+  </div>
+  <button class="calc-btn" onclick="calcBoost()">Calcular Boost</button>
+  <div class="calc-result" id="boost-result"></div>
+</div>
+
+<div class="calc-section">
+  <h3>📐 Calculadora Flyback</h3>
+  <div class="calc-row">
+    <label>Vin (V):</label>
+    <input type="number" id="fly-vin" value="24" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>Vout (V):</label>
+    <input type="number" id="fly-vout" value="5" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>Iout (A):</label>
+    <input type="number" id="fly-iout" value="2" step="0.1">
+  </div>
+  <div class="calc-row">
+    <label>fsw (kHz):</label>
+    <input type="number" id="fly-fsw" value="100" step="10">
+  </div>
+  <div class="calc-row">
+    <label>N = Ns/Np:</label>
+    <input type="number" id="fly-n" value="0.5" step="0.05">
+  </div>
+  <button class="calc-btn" onclick="calcFlyback()">Calcular Flyback</button>
+  <div class="calc-result" id="fly-result"></div>
+</div>
+
+<!-- ============================ RESUMEN ============================ -->
+<h1 id="resumen">7.12 Resumen</h1>
+
+<div class="box box-success">
+  <span class="box-title">✅ Puntos Clave del Capítulo</span>
+  <ul>
+    <li><strong>PWM:</strong> Duty cycle \(D = t_{ON}/T\) controla la relación de conversión</li>
+    <li><strong>Buck:</strong> \(V_{out} = D \cdot V_{in}\) — solo reduce voltaje</li>
+    <li><strong>Boost:</strong> \(V_{out} = V_{in}/(1-D)\) — solo eleva voltaje</li>
+    <li><strong>Buck-Boost:</strong> \(V_{out} = -V_{in} \cdot D/(1-D)\) — invierte polaridad</li>
+    <li><strong>Flyback:</strong> \(V_{out} = V_{in} \cdot D/(1-D) \cdot N_s/N_p\) — aislada, económica</li>
+    <li><strong>Forward:</strong> \(V_{out} = D \cdot V_{in} \cdot N_s/N_p\) — requiere bobina de reset</li>
+    <li><strong>Push-Pull:</strong> \(V_{out} = 2D \cdot V_{in} \cdot N_s/N_p\) — dead-time obligatorio</li>
+    <li><strong>Half-Bridge:</strong> \(V_{out} = D \cdot V_{in} \cdot N_s/N_p\) — Vin/2 al transformador</li>
+    <li><strong>Full-Bridge:</strong> \(V_{out} = 2D \cdot V_{in} \cdot N_s/N_p\) — máxima potencia</li>
+    <li><strong>Frecuencia:</strong> 100kHz-2MHz. Mayor fsw = componentes más pequeños pero más pérdidas</li>
+    <li><strong>Inductancia:</strong> \(L_{min}\) depende de Vin, Vout, D, fsw y ripple deseado</li>
+    <li><strong>Condensador:</strong> \(C_{out}\) depende de ripple de corriente, fsw y ripple de voltaje aceptable</li>
+  </ul>
+</div>
+
+<!-- ============================ ERRORES COMUNES ============================ -->
+<h1 id="errores">7.13 Errores Comunes</h1>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 1: Olvidar el diodo de rueda libre en Buck/Boost</span>
+  <p><strong>Problema:</strong> Al apagarse el MOSFET, la corriente del inductor no tiene camino → pico de voltaje destructivo.</p>
+  <p><strong>Solución:</strong> SIEMPRE incluir un diodo Schottky (baja Vf, conmutación rápida) en paralelo con la carga (Buck) o en serie (Boost).</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 2: Usar diodo lento en SMPS</span>
+  <p><strong>Problema:</strong> Un diodo 1N4007 (trr ~ 30µs) a 300kHz genera enormes pérdidas por recuperación inversa.</p>
+  <p><strong>Solución:</strong> Usar diodos Schottky (trr ~ 0) o diodos de SiC para alta frecuencia. Para Flyback: Schottky o SiC.</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 3: No calcular el ripple de corriente del inductor</span>
+  <p><strong>Problema:</strong> Si \(\Delta I_L\) es muy grande, el inductor satura y el MOSFET falla por sobrecorriente.</p>
+  <p><strong>Solución:</strong> Mantener \(\Delta I_L\) entre 20-40% de Iout. Verificar que \(I_{peak} = I_{out} + \Delta I_L/2\) no exceda la saturación del inductor.</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 4: Flyback sin clamp</span>
+  <p><strong>Problema:</strong> La inductancia de fuga del transformador genera un pico de voltaje que destruye el MOSFET.</p>
+  <p><strong>Solución:</strong> Implementar clamp RCD (resistencia + condensador + diodo) o TVS en el primario. Calcular \(V_{spike} = V_{in} + V_{clamp}\).</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 5: Push-Pull sin dead-time</span>
+  <p><strong>Problema:</strong> Ambos MOSFETs conducen simultáneamente → cortocircuito → destrucción.</p>
+  <p><strong>Solución:</strong> Configurar dead-time en el controlador (50-200nmínimo). Verificar con osciloscopio que no haya overlap.</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 6: Forward sin bobina de reset</span>
+  <p><strong>Problema:</strong> El núcleo del transformador acumula flujo en una sola dirección → saturación → fallo.</p>
+  <p><strong>Solución:</strong> Incluir devanado de reset (1:1 con primario) o clamp RCD. Sin reset, \(D_{max} = 0.5\).</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 7: Subestimar pérdidas por conmutación</span>
+  <p><strong>Problema:</strong> Aumentar fsw sin considerar que \(P_{sw} = \frac{1}{2} V \cdot I \cdot (t_r+t_f) \cdot f_{sw}\) crece linealmente.</p>
+  <p><strong>Solución:</strong> Para fsw > 500kHz, considerar topologías resonantes (LLC, ZVS) o MOSFETs de baja carga de puerta (Qg).</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 8: No considerar ESR del condensador de salida</span>
+  <p><strong>Problema:</strong> El ripple de voltaje real es \(\Delta V = \Delta I_L \cdot ESR + \Delta I_L/(8 \cdot f_{sw} \cdot C)\). Si ESR es alto, el condensador no filtra.</p>
+  <p><strong>Solución:</strong> Usar condensadores cerámicos (X5R/X7R) o polímero de bajo ESR. Verificar que ESR < \(\Delta V_{max} / \Delta I_L\).</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 9: Boost con D &gt; 0.9 sin protección</span>
+  <p><strong>Problema:</strong> Si la carga se desconecta, Vout tiende a infinito (en teoría). En práctica, el condensador explota.</p>
+  <p><strong>Solución:</strong> Implementar OVP (Over-Voltage Protection) con divisor + comparador que desactive el PWM si Vout > 1.1 × Vout_nominal.</p>
+</div>
+
+<div class="box box-danger">
+  <span class="box-title">❌ Error 10: Layout inadecuado en PCB de SMPS</span>
+  <p><strong>Problema:</strong> Lazos de corriente grandes generan EMI y picos de voltaje por inductancia parásita.</p>
+  <p><strong>Solución:</strong> Minimizar el área del lazo de potencia (Vin-MOSFET-L-Diodo-Cout). Usar planos de tierra sólidos. Separar tierra de potencia de tierra de señal.</p>
+</div>
+
+</body>
+</html>

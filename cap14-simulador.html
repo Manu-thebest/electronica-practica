@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cap 14 — Simulador Visual Buck</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="js/app.js"></script>
+</head>
+<body>
+
+<div class="cover">
+  <div class="icon">🎮</div>
+  <h1>Capítulo 14</h1>
+  <h2>Simulador Visual de Buck</h2>
+</div>
+
+<h2>Simulación Interactiva</h2>
+<p>Observa cómo cambian las ondas del convertidor Buck al variar el duty cycle y el voltaje de salida.</p>
+
+<div class="sim">
+  <canvas id="simCanvas"></canvas>
+  <div class="sim-controls">
+    <label>Duty: <input type="range" id="sim-duty" min="10" max="90" value="42" oninput="initSim()"></label>
+    <label>Vout (V): <input type="range" id="sim-vout" min="1" max="20" value="5"></label>
+    <label>fsw: <input type="range" id="sim-fsw" min="50" max="500" value="200"></label>
+  </div>
+  <button id="sim-update" style="margin-top:10px;padding:6px 20px;background:#4caf50;color:white;border:none;border-radius:4px;cursor:pointer;">Actualizar</button>
+</div>
+
+<h2>¿Qué muestra la simulación?</h2>
+<table>
+  <tr><th>Señal</th><th>Color</th><th>Descripción</th></tr>
+<tr><td>PWM Gate</td><td>Azul</td><td>Se±al de control del MOSFET</td></tr>
+<tr><td>IL (Corriente L)</td><td>Naranja</td><td>Corriente triangular en el inductor</td></tr>
+<tr><td>Vout</td><td>Verde</td><td>Voltaje de salida con ripple</td></tr>
+</table>
+
+<h2>Efectos del Duty Cycle</h2>
+<div class="box box-info">
+  <span class="box-title">💡 Experimenta</span>
+  <ul>
+    <li>Duty 50%, Vin=12V → Vout ≈ 6V</li>
+    <li>Duty 0% → Vout = 0V (MOSFET apagado)</li>
+    <li>Frequency 500kHz ≈ filtro más pequeño necesario</li>
+  </ul>
+</div>
+
+<h2>Resumen y Errores Comunes</h2>
+<div class="box box-danger">
+  <span class="box-title">⚠️ Errores en simulación vs realidad</span>
+  <ol>
+    <li>La simulación no captura transitorios de conmutación (pérdidas de MOSFET)</li>
+    <li>No considera ESR de condensadores (causa mÁs ripple medido)</li>
+    <li>Inductancia parásita de PCB puede causar oscilaciones</li>
+  </ol>
+</div>
+
+</body>
+</html>

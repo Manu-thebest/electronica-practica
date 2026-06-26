@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 11 — Taller ESP32: PWM, ADC e I2C</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.code-block { background: #263238; color: #eee; padding: 14px 18px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.5; margin: 10px 0; overflow-x: auto; white-space: pre; }
+.code-block .com { color: #546e7a; }
+.code-block .key { color: #ff9800; }
+.code-block .str { color: #c3e88d; }
+.code-block .func { color: #82aaff; }
+.code-block .num { color: #f78c6c; }
+.code-block .inc { color: #c792ea; }
+.code-block .pin { color: #ff5370; }
+</style>
+</head>
+<body>
+
+<h1>Capítulo 11 — Taller ESP32: PWM, ADC e I2C</h1>
+
+<div class="box box-info">
+<span class="box-title">Objetivo del capítulo</span>
+Programar el ESP32 en Arduino IDE para: control PWM con LEDC, leer ADC con divisor de voltaje, comunicarnos por I2C, y construir proyectos prácticos (dimmer de LED, monitor de batería).
+</div>
+
+<h2>11.1 LEDC — Control PWM Avanzado</h2>
+
+<p>El ESP32 tiene 16 canales LEDC (LED Control) independientes, a diferencia del <code>analogWrite()</code> limitado de Arduino. Los canales se dividen en 8 de alta velocidad y 8 de baja velocidad.</p>
+
+<h4>Arquitectura LEDC:</h4>
+<table>
+<thead>
+<tr><th>Característica</th><th>Valor</th></tr>
+</thead>
+<tbody>
+<tr><td>Canales disponibles</td><td>16 (GPIO 0-33, excepto 20, 24, 28-31)</td></tr>
+<tr><td>Resolución configurable</td><td>1 a 16 bits</td></tr>
+<tr><td>Frecuencia máxima</td><td>40 MHz (1 bit res)</td></tr>
+<tr><td>Frecuencia típica LED</td><td>1 kHz - 5 kHz</td></tr>
+<tr><td>Frecuencia para dimmer</td><td>>200 Hz (evitar parpadeo visible)</td></tr>
+<tr><td>Timer independientes</td><td>4 (cada canal asociado a uno)</td></tr>
+</tbody>
+</table>
+
+<h4>Código: Configuración básica LEDC</h4>
+
+<div class="code-block"><span class="com">// ESP32 LEDC PWM — Ejemplo básico</span>
+<span class="com">// Canal 0, GPIO 2, 1kHz, resolución 13 bits</span>
+
+<span class="inc">#define</span> <span class="pin">LED_PIN</span>     <span class="num">2</span>    <span class="com">// GPIO2 (LED integrado en muchas placas)</span>
+<span class="inc">#define</span> <span class="pin">PWM_CH</span>      <span class="num">0</span>
+<span class="inc">#define</span> <span class="pin">PWM_FREQ</span>    <span class="num">1000</span> <span class="com">// 1 kHz</span>
+<span class="inc">#define</span> <span class="pin">PWM_RES</span>     <span class="num">13</span>   <span class="com">// 13 bits = 8192 niveles</span>
+
+<span class="key">void</span> <span class="func">setup</span>() {
+  <span class="com">// Método nuevo ESP-Arduino Core 3.x:</span>
+  <span class="func">ledcAttach</span>(<span class="pin">LED_PIN</span>, <span class="pin">PWM_FREQ</span>, <span class="pin">PWM_RES</span>);
+  
+  <span class="com">// Método legacy (ESP-Arduino Core 2.x):  </span>
+  <span class="com">// ledcSetup(PWM_CH, PWM_FREQ, PWM_RES);</span>
+  <span class="com">// ledcAttachPin(LED_PIN, PWM_CH);</span>
+}
+
+<span class="key">void</span> <span class="func">loop</span>() {
+  <span class="com">// Fade de 0 a máximo y vuelta</span>
+  <span class="key">for</span> (<span class="key">int</span> duty = <span class="num">0</span>; duty &lt;= <span class="num">8191</span>; duty += <span class="num">50</span>) {
+    <span class="func">ledcWrite</span>(<span class="pin">LED_PIN</span>, duty);
+    <span class="func">delay</span>(<span class="num">5</span>);
+  }
+  <span class="key">for</span> (<span class="key">int</span> duty = <span class="num">8191</span>; duty &gt;= <span class="num">0</span>; duty -= <span class="num">50</span>) {
+    <span class="func">ledcWrite</span>(<span class="pin">LED_PIN</span>, duty);
+    <span class="func">delay</span>(<span class="num">5</span>);
+  }
+}</div>
+
+<div class="box box-info">
+<span class="box-title">� Nota sobre ledcWrite</span>
+En ESP-Arduino Core 3.x, <code>ledcWrite(pin, duty)</code> toma el GPIO directamente. En versión 2.x toma el canal. Para portabilidad, usa el nuevo API con el pin como primer argumento.
+</div>
+
+<p><strong>Resolución vs. Frecuencia:</strong> El producto Frecuencia × 2<sup>Resolución</sup> debe ser ≤ 80 MHz (timer clock). Ejemplo:</p>
+<ul>
+<li>13 bits @ 1 kHz → 8192 × 1000 = 8.2 MHz ✅</li>
+<li>10 bits @ 10 kHz → 1024 × 10000 = 10.2 MHz ✅</li>
+<li>12 bits @ 20 kHz → 4096 × 20000 = 81.9 MHz ❌ (reducir resolución)</li>
+</ul>
+
+<h2>11.2 ADC — Lectura con Divisor de Voltaje</h2>
+
+<p>El ESP32 tiene dos ADC de 12 bits (ADC1: GPIO 32-39, ADC2: GPIO 0,2,4,12-15,25-27). La tensión de referencia por defecto es 0-3.3V, aunque se puede atenuar para rangos mayores.</p>
+
+<h4>Atenuación configurables:</h4>
+<table>
+<thead>
+<tr><th>Atenuación</th><th>Rango de entrada</th><th>Aplicación</th></tr>
+</thead>
+<tbody>
+<tr><td>ADC_0db</td><td>0 - 1.1V</td><td>Referencia interna calibrada</td></tr>
+<tr><td>ADC_2_5db</td><td>0 - 1.5V</td><td>Sensores 1.2V</td></tr>
+<tr><td>ADC_6db</td><td>0 - 2.2V</td><td>Divisores resistivos 3.3V</td></tr>
+<tr><td>ADC_11db</td><td>0 - 3.3V</td><td>Rango completo por defecto</td></tr>
+</tbody>
+</table>
+
+<div class="diagram">
+<svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+  <!-- Resistor divider -->
+  <text x="60" y="25" fill="#333" font-family="monospace" font-size="11" font-weight="bold">Vin (0-6.6V)</text>
+  <line x1="60" y1="40" x2="60" y2="90" stroke="#333" stroke-width="2"/>
+  
+  <!-- R1 -->
+  <rect x="45" y="90" width="30" height="50" fill="#ffcc80" stroke="#ff9800" stroke-width="1" rx="3"/>
+  <text x="60" y="120" fill="white" font-family="monospace" font-size="10" text-anchor="middle">R1</text>
+  <text x="90" y="108" fill="#e65100" font-family="monospace" font-size="9">100kΩ</text>
+  
+  <!-- Mid point -->
+  <line x1="60" y1="140" x2="60" y2="170" stroke="#333" stroke-width="2"/>
+  <circle cx="60" cy="155" r="4" fill="#4caf50"/>
+  <text x="95" y="158" fill="#2e7d32" font-family="monospace" font-size="10">Vout = Vin × R2/(R1+R2)</text>
+  
+  <!-- R2 -->
+  <rect x="45" y="170" width="30" height="50" fill="#ffcc80" stroke="#ff9800" stroke-width="1" rx="3"/>
+  <text x="60" y="200" fill="white" font-family="monospace" font-size="10" text-anchor="middle">R2</text>
+  <text x="90" y="190" fill="#e65100" font-family="monospace" font-size="9">100kΩ</text>
+  
+  <line x1="60" y1="220" x2="60" y2="240" stroke="#333" stroke-width="2"/>
+  <line x1="40" y1="240" x2="80" y2="240" stroke="#333" stroke-width="2"/>
+  <text x="100" y="244" fill="#c62828" font-family="monospace" font-size="10">GND</text>
+  
+  <!-- MCU ADC pin -->
+  <rect x="250" y="80" width="200" height="90" fill="#37474f" stroke="#546e7a" stroke-width="2" rx="6"/>
+  <text x="350" y="110" fill="white" font-family="monospace" font-size="11" text-anchor="middle">ESP32 ADC1_CH4</text>
+  <text x="350" y="130" fill="#82aaff" font-family="monospace" font-size="10" text-anchor="middle">GPIO 32 (ADC_11db)</text>
+  <circle cx="250" cy="125" r="5" fill="#4caf50"/>
+  <text x="200" y="130" fill="#666" font-family="monospace" font-size="9">→ ADC_PIN</text>
+  
+  <text x="350" y="190" fill="#f57f17" font-family="monospace" font-size="10" text-anchor="middle">Vout_max = 6.6V × 0.5 = 3.3V ✓</text>
+</svg>
+<div class="label">Divisor resistivo para medir hasta 6.6V con ADC del ESP32</div>
+</div>
+
+<h4>Código: Lectura ADC con promediado</h4>
+
+<div class="code-block"><span class="com">// ESP32 ADC con divisor de voltaje y promediado</span>
+<span class="inc">#define</span> <span class="pin">ADC_PIN</span>    <span class="num">32</span>
+<span class="inc">#define</span> <span class="pin">R1</span>          <span class="num">100000.0</span>  <span class="com">// 100kΩ</span>
+<span class="inc">#span class="pin">R2</span>          <span class="num">100000.0</span>  <span class="com">// 100kΩ</span>
+<span class="inc">#define</span> <span class="pin">SAMPLES</span>    <span class="num">32</span>
+<span class="inc">#define</span> <span class="pin">VREF</span>       <span class="num">3.3</span>
+
+<span class="key">void</span> <span class="func">setup</span>() {
+  <span class="func">Serial</span>.<span class="func">begin</span>(<span class="num">115200</span>);
+  <span class="func">analogSetAttenuation</span>(<span class="pin">ADC_11db</span>); <span class="com">// Rango completo 0-3.3V</span>
+}
+
+<span class="key">void</span> <span class="func">loop</span>() {
+  <span class="key">float</span> suma = <span class="num">0</span>;
+  <span class="key">for</span> (<span class="key">int</span> i = <span class="num">0</span>; i &lt; <span class="pin">SAMPLES</span>; i++) {
+    suma += <span class="func">analogRead</span>(<span class="pin">ADC_PIN</span>);
+  }
+  <span class="key">float</span> raw = suma / <span class="pin">SAMPLES</span>;
+  
+  <span class="key">float</span> v_adc = (raw / <span class="num">4095.0</span>) * <span class="pin">VREF</span>;
+  <span class="key">float</span> vin = v_adc * ((<span class="pin">R1</span> + <span class="pin">R2</span>) / <span class="pin">R2</span>);
+  
+  <span class="func">Serial</span>.<span class="func">printf</span>(<span class="str">"Raw: %.0f | V_ADC: %.2fV | Vin: %.2fV\n"</span>, raw, v_adc, pin);
+  <span class="func">delay</span>(<span class="num">500</span>);
+}</div>
+
+<div class="box box-warning">
+<span class="box-title">⚠️ Limitaciones del ADC ESP32</span>
+El ADC del ESP32 tiene notable no-linealihdad (DNL/INL) y ruido. Para medições de precisión:<br>
+• Usa promediado (oversampling) — 32-64 muestras reduce ruido 2-3 bits efectivos<br>
+• Calibra con voltaje conocido si necesitas precisión &gt;1%<br>
+• Considera un ADC externo (ADS1115 por I2C) para precisiones de 16 bits
+</div>
+
+<h2>11.3 Comunicación I2C</h2>
+
+<p>I2C (Inter-IC Bus) es un bus serial síncrono multi-master/multi-slave que usa: SDA (datos) y SCL (reloj). El ESP32 tiene 2 controladores I2C.</p>
+
+<h4>Parámetros I2C ESP32:</h4>
+<table>
+<thead>
+<tr><th>Modo</th><th>Velocidad</th><th>Notas</th></tr>
+</thead>
+<tbody>
+<tr><td>Standard Mode</td><td>100 kbps</td><td>Más compatible, funciona con todos los dispositivos</td></tr>
+<tr><td>Fast Mode</td><td>400 kbps</td><td>Estándar para la mayoría de sensores</td></tr>
+<tr><td>Fast Mode Plus</td><td>1 Mbps</td><td>Algunos dispositivos modernos</td></tr>
+<tr><td>Clock stretching</td><td>Sí (configurable)</td><td>Slave puede ralentizar al master</td></tr>
+</tbody>
+</table>>
+
+<h4>Código: Escaneo de bus I2C</h4>
+
+<div class="code-block"><span class="com">// Escáner I2C para ESP32</span>
+<span class="inc">#include</span> <span class="str">&lt;Wire.h&gt;</span>
+
+<span class="inc">#define</span> <span class="pin">SDA_PIN</span> <span class="num">21</span>
+<span class="inc">#define</span> <span class="pin">SCL_PIN</span> <span class="num">22</span>
+
+<span class="key">void</span> <span class="func">setup</span>() {
+  <span class="func">Serial</span>.<span class="func">begin</span>(<span class="num">115200</span>);
+  <span class="func">Wire</span>.<span class="func">begin</span>(<span class="pin">SDA_PIN</span>, <span class="pin">SCL_PIN</span>);
+  <span class="func">Wire</span>.<span class="func">setClock</span>(<span class="num">100000</span>); <span class="com">// 100 kHz</span>
+  
+  <span class="func">Serial</span>.<span class="func">println</span>(<span class="str">"Escaneando bus I2C..."</span>);
+  <span class="key">for</span> (<span class="key">byte</span> addr = <span class="num">1</span>; addr &lt; <span class="num">127</span>; addr++) {
+    <span class="func">Wire</span>.<span class="func">beginTransmission</span>(addr);
+    <span class="key">byte</span> error = <span class="func">Wire</span>.<span class="func">endTransmission</span>();
+    <span class="key">if</span> (error == <span class="num">0</span>) {
+      <span class="func">Serial</span>.<span class="func">printf</span>(<span class="str">"Dispositivo encontrado: 0x%02X\n"</span>, addr);
+    }
+  }
+}
+
+<span class="key">void</span> <span class="func">loop</span>() {}</div>
+
+<h4>Código: Leer sensor I2C (ejemplo BMP280)</h4>
+
+<div class="code-block"><span class="com">// Leer dirección de un sensor I2C genérico</span>
+<span class="key">void</span> <span class="func">leerSensorI2C</span>(<span class="key">uint8_t</span> addr, <span class="key">uint8_t</span> reg) {
+  <span class="func">Wire</span>.<span class="func">beginTransmission</span>(addr);
+  <span class="func">Wire</span>.<span class="func">write</span>(reg);           <span class="com">// Registro a leer</span>
+  <span class="func">Wire</span>.<span class="func">endTransmission</span>(<span class="key">false</span>); <span class="com">// Repeated start</span>
+  <span class="func">Wire</span>.<span class="func">requestFrom</span>(addr, (<span class="key">size_t</span>)<span class="num">2</span>, <span class="key">true</span>);
+  
+  <span class="key">if</span> (<span class="func">Wire</span>.<span class="func">available</span>() &gt;= <span class="num">2</span>) {
+    <span class="key">uint8_t</span> high = <span class="func">Wire</span>.<span class="func">read</span>();
+    <span class="key">uint8_t</span> low  = <span class="func">Wire</span>.<span class="func">read</span>();
+    <span class="key">int16_t</span> valor = (high &lt;&lt; <span class="num">8</span>) | low;
+    <span class="func">Serial</span>.<span class="func">printf</span>(<span class="str">"Valor: %d\n"</span>, valor);
+  }
+}
+
+<span class="com">// Uso típico lectura multi-registro:</span>
+<span class="func">leerSensorI2C</span>(<span class="num">0x76</span>, <span class="num">0xF7</span>); <span class="com">// BMP280: registro presión MSB</span></div>
+
+<div class="box box-info">
+<span class="box-title">� Pull-ups I2C obligatorios</span>
+I2C requiere resistencias pull-up en SDA y SCL. Para 100kHz y bus corto (&lt;30cm):<br>
+• <strong>4.7 kΩ</strong> para 3.3V (estándar)<br>
+• <strong>2.2 kΩ</strong> para buses largos o Fast Mode (400kHz)<br>
+Muchos módulos ya incluyen pull-ups. Si conectas varios módulos, los pull-ups se paralelizan y pueden ser demasiado fuertes → usa 10kΩ en ese caso.
+</div>
+
+<h2>11.4 Proyecto 1 — Dimmer de LED con PWM</h2>
+
+<p>Controlar el brillo de un LED blanco de 3W con potenciómetro. El LED se conecta a través de un MOSFET de nivel lógico (AO3400 o IRLZ44N) manejado por PWM del ESP32.</p>
+
+<h4>Conexiones del circuito:</h4>
+<table>
+<thead>
+<tr><th>Componente</th><th>Valor</th><th>Conexión</th></tr>
+</thead>
+<tbody>
+<tr><td>LED 3W (cátodo)</td><td>Forward ≈ 3.2V</td><td>Drain MOSFET</td></tr>
+<tr><td>Resistencia R_limit</td><td>0.5Ω (para limitar corriente)</td><td>Source a GND</td></tr>
+<tr><td>MOSFET (AO3400)</td><td>Rds(on) = 24mΩ @ 2.5V</td><td>Gate → GPIO 25 (PWM)</td></tr>
+<tr><td>Potenciómetro</td><td>100kΩ</td><td>Wiper → GPIO 34 (ADC)</td></tr>
+<tr><td>Fuente 5V</td><td>2A</td><td>LED ánodo a través de R</td></tr>
+</tbody>
+</table>
+
+<div class="code-block"><span class="com">// =====================================</span>
+<span class="com">// PROYECTO: Dimmer LED con Potenciómetro</span>
+<span class="com">// ESP32 - ADC lee pot, PWM controla LED</span>
+<span class="com">// =====================================</span>
+
+<span class="inc">#define</span> <span class="pin">PWM_LED</span>    <span class="num">25</span>   <span class="com">// Gate MOSFET</span>
+<span class="inc">#define</span> <span class="pin">ADC_POT</span>    <span class="num">34</span>   <span class="com">// Potenciómetro</span>
+<span class="inc">#define</span> <span class="pin">PWM_FREQ</span>   <span class="num">2000</span> <span class="com">// 2kHz - sin parpadeo</span>
+<span class="inc">#define</span> <span class="pin">PWM_RES</span>    <span class="num">12</span>   <span class="com">// 12 bits = 4096 niveles</span>
+
+<span class="key">void</span> <span class="func">setup</span>() {
+  <span class="func">Serial</span>.<span class="func">begin</span>(<span class="num">115200</span>);
+  <span class="func">ledcAttach</span>(<span class="pin">PWM_LED</span>, <span class="pin">PWM_FREQ</span>, <span class="pin">PWM_RES</span>);
+  <span class="func">analogSetAttenuation</span>(<span class="pin">ADC_11db</span>);
+}
+
+<span class="key">void</span> <span class="func">loop</span>() {
+  <span class="key">int</span> pot = <span class="func">analogRead</span>(<span class="pin">ADC_POT</span>);   <span class="com">// 0 - 4095</span>
+  <span class="key">int</span> pot = <span class="func">map</span>(pot, <span class="num">0</span>, <span class="num">4095</span>, <span class="num">0</span>, <span class="num">4095</span>);
+  
+  <span class="com">// Opcional: aplicar corrección gamma para percepción lineal</span>
+  <span class="key">float</span> gamma = pot / <span class="num">4095.0</span>;
+  gamma = <span class="func">pow</span>(gamma, <span class="num">2.2</span>);
+  <span class="key">int</span> duty = (<span class="key">int</span>)(gamma * <span class="num">4095</span>);
+  
+  <span class="func">ledcWrite</span>(<span class="pin">PWM_LED</span>, duty);
+  
+  <span class="func">Serial</span>.<span class="func">printf</span>(<span class="str">"Pot: %d → Duty: %d (%.1f%%)\n"</span>, pot, duty, (duty*100.0/4095));
+  <span class="func">delay</span>(<span class="num">20</span>);
+}</div>
+
+<div class="box box-warning">
+<span class="box-title">⚠️ Corrección Gamma</span>
+La luminosidad percibida sigue una potencia ~2.2. Sin corrección gamma, el LED parece "volar" en los niveles bajos. Aplicar <code>pow(valor_normalizado, 2.2)</code> antes de asignar duty.
+</div>
+
+<h2>11.5 Proyecto 2 — Monitor de Batería Li-Ion</h2>
+
+<p>Monitorear la carga de una batería 18650 (3.7V nominal, rango operativo 3.0V - 4.2V). Usamos divisor resistivo para llevar el voltaje al rango del ADC.</p>
+
+<h4>Cálculo del divisor:</h4>
+<ul>
+<li>Vin máximo = 4.2V</li>
+<li>Queremos Vout_max = 3.3V (rango ADC_11db)</li>
+<li>Relación: R2/(R1+R2) = 3.3/4.2 = 0.786</li>
+<li>R1 = 22kΩ, R2 = 75kΩ → ratio = 75/(22+75) = 0.773 ✓</li>
+<li>Corriente divisor: 4.2 / (22k + 75k) = 43 µA (aceptable)</li>
+</ul>
+
+<div class="code-block"><span class="com">// =====================================</span>
+<span class="com">// PROYECTO: Monitor Batería Li-Ion 18650</span>
+<span class="com">// Con divisor 22kΩ + 75kΩ en GPIO 35</span>
+<span class="com">// =====================================</span>
+
+<span class="inc">#define</span> <span class="pin">ADC_BAT</span>    <span class="num">35</span>   <span class="com">// ADC1_CH7</span>
+<span class="inc">#define</span> <span class="pin">R1</span>          <span class="num">22000.0</span>
+<span class="inc">#define</span> <span class="pin">R2</span>          <span class="num">75000.0</span>
+<span class="inc">#define</span> <span class="pin">SAMPLES</span>    <span class="num">64</span>
+<span class="inc">#define</span> <span class="pin">VREF</span>       <span class="num">3.3</span>
+
+<span class="com">// Curva descarga Li-Ion simplificada (voltaje → %)</span>
+<span class="com">// Mapeo aproximado para descarga 0.5C:</span>
+<span class="com">// 4.20V = 100% | 3.90V = 70% | 3.60V = 35% | 3.30V = 10% | 3.00V = 0%</span>
+
+<span class="key">void</span> <span class="func">setup</span>() {
+  <span class="func">Serial</span>.<span class="func">begin</span>(<span class="num">115200</span>);
+  <span class="func">analogSetAttenuation</span>(<span class="pin">ADC_11db</span>);
+}
+
+<span class="key">void</span> <span class="func">loop</span>() {
+  <span class="key">double</span> suma = <span class="num">0</span>;
+  <span class="key">for</span> (<span class="key">int</span> i = <span class="num">0</span>; i &lt; <span class="pin">SAMPLES</span>; i++) {
+    suma += <span class="func">analogRead</span>(<span class="pin">ADC_BAT</span>);
+  }
+  <span class="key">float</span> raw = suma / <span class="pin">SAMPLES</span>;
+  <span class="key">double</span> v_adc = (raw / <span class="num">4095.0</span>) * <span class="pin">VREF</span>;
+  <span class="key">double</span> v_bat = v_adc * ((<span class="pin">R1</span> + <span class="pin">R2</span>) / <span class="pin">R2</span>);
+  
+  <span class="com">// Calcular porcentaje de carga</span>
+  <span class="key">int</span> porc = <span class="func">calcularSoC</span>(v_bat);
+  
+  <span class="func">Serial</span>.<span class="func">printf</span>(<span class="str">"Vbatería: %.2fV | Carga: %d%% | Raw: %.0f\n"</span>, v_bat, porc, raw);
+  
+  <span class="com">// Alerta baja batería</span>
+  <span class="key">if</span> (v_bat &lt; <span class="num">3.1</span>) {
+    <span class="func">Serial</span>.<span class="func">println</span>(<span class="str">"⚠️ BATERÍA BAJA — Desconectar carga"</span>);
+  }
+  
+  <span class="func">delay</span>(<span class="num">1000</span>);
+}
+
+<span class="key">int</span> <span class="func">calcularSoC</span>(<span class="key">double</span> voltaje) {
+  <span class="key">if</span> (voltaje &gt;= <span class="num">4.20</span>) <span class="key">return</span> <span class="num">100</span>;
+  <span class="key">if</span> (voltaje &gt;= <span class="num">4.00</span>) <span class="key">return</span> <span class="num">80</span> + ((voltaje - <span class="num">4.00</span>) / <span class="num">0.20</span>) * <span class="num">20</span>;
+  <span class="key">if</span> (voltaje &gt;= <span class="num">3.80</span>) <span class="key">return</span> <span class="num">40</span> + ((voltaje - <span class="num">3.80</span>) / <span class="num">0.20</span>) * <span class="num">40</span>;
+  <span class="key">if</span> (voltaje &gt;= <span class="num">3.60</span>) <span class="key">return</span> <span class="num">15</span> + ((voltaje - <span class="num">3.60</span>) / <span class="num">0.20</span>) * <span class="num">25</span>;
+  <span class="key">if</span> (voltaje &gt;= <span class="num">3.00</span>) <span class="key">return</span> ((voltaje - <span class="num">3.00</span>) / <span class="num">0.60</span>) * <span class="num">15</span>;
+  <span class="key">return</span> <span class="num">0</span>;
+}</div>
+
+<h2>11.6 Proyecto Integrador — Sensor I2C + Display + PWM</h2>
+
+<p>Unión de todo lo aprendido: leer temperatura/humedad de un sensor I2C (AHT20 o SHT30), mostrar en OLED SSD1306, y controlar un ventilador con PWM según la temperatura.</p>
+
+<h4>Componentes necesarios:</h4>
+<ul>
+<li>AHT20 (I2C addr 0x38) — sensor temperatura/humedad</li>
+<li>SSD1306 OLED 128×64 (I2C addr 0x3C)</li>
+<li>Ventilador 5V → MOSFET controlado por GPIO 25 (PWM)</li>
+</ul>
+
+<div class="code-block"><span class="com">// =====================================</span>
+<span class="com">// PROYECTO INTEGRADOR: AHT20 + OLED + Ventilador automático</span>
+<span class="com">// SDA → GPIO 21 | SCL → GPIO 22 | Fan PWM → GPIO 25</span>
+<span class="com">// =====================================</span>
+
+<span class="inc">#include</span> <span class="str">&lt;Wire.h&gt;</span>
+<span class="inc">#include</span> <span class="str">&lt;Adafruit_AHTX0.h&gt;</span>
+<span class="inc">#include</span> <span class="str">&lt;Adafruit_SSD1306.h&gt;</span>
+
+<span class="inc">#define</span> <span class="pin">FAN_PIN</span>  <span class="num">25</span>
+
+<span class="com">// Objetos</span>
+<span class="func">Adafruit_AHTX0</span> aht;
+<span class="func">Adafruit_SSD1306</span> <span class="func">display</span>(<span class="num">128</span>, <span class="num">64</span>, &amp;Wire, <span class="num">-1</span>);
+
+<span class="key">void</span> <span class="func">setup</span>() {
+  <span class="func">Serial</span>.<span class="func">begin</span>(<span class="num">115200</span>);
+  <span class="func">Wire</span>.<span class="func">begin</span>(<span class="num">21</span>, <span class="num">22</span>);
+  
+  aht.<span class="func">begin</span>();
+  display.<span class="func">begin</span>(<span class="pin">SSD1306_SWITCHCAPVCC</span>, <span class="num">0x3C</span>);
+  
+  <span class="func">ledcAttach</span>(<span class="pin">FAN_PIN</span>, <span class="num">25000</span>, <span class="num">8</span>); <span class="com">// Fan PWM 25kHz, 8 bits</span>
+  display.<span class="func">clearDisplay</span>();
+}
+
+<span class="key">void</span> <span class="func">loop</span>() {
+  <span class="com">// Leer sensor</span>
+  <span class="func">sensors_event_t</span> temp, hum;
+  aht.<span class="func">getEvent</span>(&amp;hum, &amp;temp);
+  
+  <span class="com">// Control ventilador: ON sobre 25°C, lineal hasta 40°C</span>
+  <span class="key">int</span> fan_speed;
+  <span class="key">if</span> (temp.temperature &lt; <span class="num">25</span>) {
+    fan_speed = <span class="num">0</span>;
+  } <span class="key">else</span> <span class="key">if</span> (temp.temperature &gt;= <span class="num">40</span>) {
+    fan_speed = <span class="num">255</span>;
+  } <span class="key">else</span> {
+    fan_speed = <span class="func">map</span>((<span class="key">int</span>)(temp.temperature * <span class="num">10</span>), <span class="num">250</span>, <span class="num">400</span>, <span class="num">1</span>, <span class="num">255</span>);
+  }
+  <span class="func">ledcWrite</span>(<span class="pin">FAN_PIN</span>, fan_speed);
+  
+  <span class="com">// Mostrar en OLED</span>
+  display.<span class="func">clearDisplay</span>();
+  display.<span class="func">setTextSize</span>(<span class="num">1</span>);
+  display.<span class="func">setTextColor</span>(<span class="pin">SSD1306_WHITE</span>);
+  display.<span class="func">setCursor</span>(<span class="num">10</span>, <span class="num">5</span>);
+  display.<span class="func">printf</span>(<span class="str">"Temp: %.1f C"</span>, temp.temperature);
+  display.<span class="func">setCursor</span>(<span class="num">10</span>, <span class="num">25</span>);
+  display.<span class="func">printf</span>(<span class="str">"Hum: %.1f %%rH"</span>, hum.relative_humidity);
+  display.<span class="func">setCursor</span>(<span class="num">10</span>, <span class="num">45</span>);
+  display.<span class="func">printf</span>(<span class="str">"Fan: %3d/255"</span>, fan_speed);
+  display.<span class="func">display</span>();
+  
+  <span class="func">delay</span>(<span class="num">500</span>);
+}</div>
+
+<div class="box box-success">
+<span class="box-title">✅ Checklist de depuración</span>
+<ol>
+<li>Verificar que SDA y SCL están en los GPIOs correctos y con pull-ups</li>
+<li>Ejecutar escáner I2C primero para confirmar direcciones</li>
+<li>Verificar que los voltajes de alimentación son correctos (3.3V para ESP32 y sensores)</li>
+<li>Si el PWM del ventilador "zumba" a bajo duty cycle, subir la frecuencia a 25kHz</li>
+<li>Calibración: comparar lectura de AHT20 con un termómetro de referencia</li>
+</ol>
+</div>
+
+<h2>11.7 Resumen y Referencia Rápida</h2>
+
+<table>
+<thead>
+<tr><th>Función</th><th>Código</th><th>Notas</th></tr>
+</thead>
+<tbody>
+<tr><td>Configurar PWM</td><td><code>ledcAttach(pin, freq, res)</code></td><td>Válido para ESP-Arduino 3.x</td></tr>
+<tr><td>Cambiar duty</td><td><code>ledcWrite(pin, duty)</code></td><td>0 a 2^res-1</td></tr>
+<tr><td>Leer ADC</td><td><code>analogRead(pin)</code></td><td>12 bits (0-4095)</td></tr>
+<tr><td>Configurar atenuación</td><td><code>analogSetAttenuation(ADC_11db)</code></td><td>Rango 0-3.3V</td></tr>
+<tr><td>Iniciar I2C</td><td><code>Wire.begin(SDA, SCL)</code></td><td>Configurar pines si no son default</td></tr>
+<tr><td>Escribir I2C</td><td><code>Wire.beginTransmission(addr); ... endTransmission();</code></td><td>Maestro → Esclavo</td></tr>
+<tr><td>Leer I2C</td><td><code>Wire.requestFrom(addr, n_bytes)</code></td><td>Maestro recibe datos</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

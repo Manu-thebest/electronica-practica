@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Electrónica Práctica v2 — Índice</title>
+<style>
+:root { --primary: #1565c0; --primary-dark: #0d47a1; --bg: #f5f5f5; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #212121; max-width: 800px; margin: 0 auto; padding: 20px; }
+.header { background: linear-gradient(135deg, #0d47a1, #1565c0); color: white; padding: 40px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+.header h1 { font-size: 28pt; margin-bottom: 5px; }
+.header p { opacity: 0.85; font-size: 11pt; }
+.chapter { background: white; border-radius: 8px; padding: 16px 20px; margin: 8px 0; border-left: 4px solid var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: block; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; }
+.chapter:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.chapter-num { display: inline-block; width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 10pt; font-weight: bold; margin-right: 10px; }
+.chapter-title { font-weight: 600; font-size: 11pt; }
+.chapter-desc { font-size: 9pt; color: #666; margin-left: 38px; margin-top: 3px; }
+.group { margin: 24px 0 12px; padding: 8px 0; border-bottom: 2px solid var(--primary); }
+.group-title { font-size: 14pt; color: var(--primary-dark); font-weight: 700; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 8pt; font-weight: 600; }
+.badge-calc { background: #e3f2fd; color: #1565c0; }
+.badge-svg { background: #fff3e0; color: #e65100; }
+.badge-code { background: #e8f5e9; color: #2e7d32; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ Electrónica Práctica v2</h1>
+  <p>Guía completa de diseño — Con fórmulas, calculadoras interactivas y simuladores</p>
+  <p style="margin-top: 10px;">14 capítulos · 390+ fórmulas · 6 calculadoras · 1 simulador</p>
+</div>
+
+<div class="group">
+  <div class="group-title">📘 Fundamentos</div>
+</div>
+
+<a href="cap1-conceptos.html" class="chapter">
+  <span class="chapter-num">1</span>
+  <span class="chapter-title">Conceptos Fundamentales</span>
+  <div class="chapter-desc">Ley de Ohm · Kirchhoff · Potencia · Divisores · Thevenin · RMS · dB</div>
+</a>
+
+<a href="cap2-pasivos.html" class="chapter">
+  <span class="chapter-num">2</span>
+  <span class="chapter-title">Componentes Pasivos</span>
+  <div class="chapter-desc">Resistencias · Condensadores · Inductores · Reactancia · Impedancia · RLC</div>
+</a>
+
+<a href="cap3-semiconductores.html" class="chapter">
+  <span class="chapter-num">3</span>
+  <span class="chapter-title">Semiconductores</span>
+  <div class="chapter-desc">Diodos · BJT · MOSFET · Ecuaciones · Configuraciones</div>
+</a>
+
+<div class="group">
+  <div class="group-title">🔧 Circuitos</div>
+</div>
+
+<a href="cap4-filtros.html" class="chapter">
+  <span class="chapter-num">4</span>
+  <span class="chapter-title">Filtros RC, LC y Sallen-Key</span>
+  <span class="badge badge-calc">Calculadora</span>
+  <div class="chapter-desc">Pasa-bajas · Pasa-altas · Resonancia · Q factor · Filtros activos</div>
+</a>
+
+<a href="cap5-opamps.html" class="chapter">
+  <span class="chapter-num">5</span>
+  <span class="chapter-title">Amplificadores Operacionales</span>
+  <span class="badge badge-calc">Calculadora</span>
+  <div class="chapter-desc">Inversor · No-inversor · Sumador · Diferencial · Comparador · Schmitt trigger</div>
+</a>
+
+<a href="cap6-reguladores.html" class="chapter">
+  <span class="chapter-num">6</span>
+  <span class="chapter-title">Reguladores Lineales</span>
+  <div class="chapter-desc">Zener · 78xx/79xx · LM317 ajustable · LDO · Disipación · Eficiencia</div>
+</a>
+
+<div class="group">
+  <div class="group-title">⚡ Fuentes Conmutadas</div>
+</div>
+
+<a href="cap7-fuentes-conmutadas.html" class="chapter">
+  <span class="chapter-num">7</span>
+  <span class="chapter-title">Topologías de Fuentes Conmutadas</span>
+  <span class="badge badge-calc">3 Calculadoras</span>
+  <div class="chapter-desc">Buck · Boost · Buck-Boost · Flyback · Forward · Push-Pull · Half/Full Bridge</div>
+</a>
+
+<a href="cap8-aplicaciones-led.html" class="chapter">
+  <span class="chapter-num">8</span>
+  <span class="chapter-title">Aplicaciones con LEDs</span>
+  <div class="chapter-desc">Cálculo de resistencia · PWM dimming · Drivers CC/CV · Alta potencia</div>
+</a>
+
+<a href="cap9-protecciones.html" class="chapter">
+  <span class="chapter-num">9</span>
+  <span class="chapter-title">Circuitos de Protección</span>
+  <div class="chapter-desc">TVS · PTC · OVP/UVP · Fusibles · Diodo flyback · Protección polaridad</div>
+</a>
+
+<div class="group">
+  <div class="group-title">🛠️ Práctica</div>
+</div>
+
+<a href="cap10-pcb.html" class="chapter">
+  <span class="chapter-num">10</span>
+  <span class="chapter-title"> PCB</span>
+  <span class="badge badge-svg">Diagramas</span>
+  <div class="chapter-desc">Ancho de pista · Plano de tierra · Desacoplo · DFM · Reglas prácticas</div>
+</a>
+
+<a href="cap11-taller-esp32.html" class="chapter">
+  <span class="chapter-num">11</span>
+  <span class="chapter-title">Taller con ESP32</span>
+  <span class="badge badge-code">Código</span>
+  <div class="chapter-desc">PWM LEDC · ADC · I2C · Proyectos prácticos · Buck controlado digitalmente</div>
+</a>
+
+<a href="cap12-bom.html" class="chapter">
+  <span class="chapter-num">12</span>
+  <span class="chapter-title">Bill of Materials (BOM)</span>
+  <div class="chapter-desc">BOM Buck 5V@2A · BOM Flyback · BOM LED 20W · Números de parte reales</div>
+</a>
+
+<div class="group">
+  <div class="group-title">📚 Referencia</div>
+</div>
+
+<a href="cap13-glosario.html" class="chapter">
+  <span class="chapter-num">13</span>
+  <span class="chapter-title">Glosario y Tablas de Referencia</span>
+  <div class="chapter-desc">Símbolos · Prefijos SI · AWG · Código colores · Componentes recomendados</div>
+</a>
+
+<a href="cap14-simulador.html" class="chapter">
+  <span class="chapter-num">14</span>
+  <span class="chapter-title">Simulador Visual de Buck</span>
+  <span class="badge badge-svg">Simulador</span>
+  <div class="chapter-desc">Canvas interactivo · PWM · Corriente inductor · Ripple · Control duty cycle</div>
+</a>
+
+<div style="text-align: center; margin-top: 30px; padding: 20px; color: #999; font-size: 9pt;">
+  <p><strong>Electrónica Práctica v2</strong> — Guía Completa de Diseño</p>
+  <p>2026 · Manu-thebest · Licencia MIT</p>
+  <p>Para cada capítulo: ejemplos prácticos, errores comunes, y resumen</p>
+</div>
+
+</body>
+</html>

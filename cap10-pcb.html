@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capítulo 10 — Diseño de PCB</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<h1>Capítulo 10 — Diseño de PCB: Guías Prácticas</h1>
+
+<div class="box box-info">
+<span class="box-title">Objetivo</span>
+Aprender las reglas fundamentales para diseñar placas de circuito impreso (PCB) profesionales: dimensionado de trazas, planos de tierra, desacople, vías, DFM y seguridad eléctrica.
+</div>
+
+<h2>10.1 Ancho de Traza vs Corriente</h2>
+
+<p>El ancho de una traza determina cuánta corriente puede transportar sin calentarse excesivamente. La regla práctica: <strong>1 oz/ft² de cobre ≈ 35 µm de espesor</strong>.</p>
+
+<div class="box box-warning">
+<span class="box-title">⚠️ Regla rápida</span>
+Para 1 oz de cobre exterior: <strong>1 mm de ancho ≈ 1 A</strong> (incremento de temperatura ~10°C). Para capas internas reducir 30-50%.
+</div>
+
+<table>
+<caption><strong>Tabla 10.1:</strong> Ancho de traza recomendado para ∆T = 10°C (cobre 1 oz/ft², exterior)</caption>
+<thead>
+<tr>
+<th>Corriente (A)</th>
+<th>Ancho mínimo (mm)</th>
+<th>Ancho mínimo (mil)</th>
+<th>Aplicación típica</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0.1 A</td><td>0.15</td><td>6</td><td>Señal digital, sensores</td></tr>
+<tr><td>0.3 A</td><td>0.35</td><td>14</td><td>LED individuales, lógica</td></tr>
+<tr><td>0.5 A</td><td>0.60</td><td>24</td><td>ICs pequeños, opamps</td></tr>
+<tr><td>1.0 A</td><td>1.00</td><td>40</td><td>Alimentación ICs, MCU</td></tr>
+<tr><td>1.5 A</td><td>1.50</td><td>60</td><td>Fuentes pequeñas</td></tr>
+<tr><td>2.0 A</td><td>2.30</td><td>90</td><td>Power rails principales</td></tr>
+<tr><td>3.0 A</td><td>4.00</td><td>160</td><td>Motores DC pequeños</td></tr>
+<tr><td>5.0 A</td><td>7.50</td><td>300</td><td>Convertidores DC-DC</td></tr>
+<tr><td>8.0 A</td><td>12.0</td><td>470</td><td>Potencia media</td></tr>
+<tr><td>10.0 A</td><td>17.0</td><td>670</td><td>Alimentación principal</td></tr>
+</tbody>
+</table>
+
+<div class="formula">
+<strong>Fórmula IPC-2221 (aproximada):</strong><br>
+\( I = k \cdot \Delta T^{0.44} \cdot A^{0.725} \)<br>
+<div class="label">Donde A = área de sección transversal (mil²), k = 0.048 (capa exterior), k = 0.024 (capa interior)</div>
+</div>
+
+<h3>Calculadora de Ancho de Traza</h3>
+
+<div class="calc">
+<h4>📐 Dimensionado de Traza</h4>
+<div class="calc-row">
+<label>Corriente (A):</label>
+<input type="number" id="trace-current" min="0.1" max="30" step="0.1" value="2">
+</div>
+<div class="calc-row">
+<label>Temperatura ambiente (°C):</label>
+<input type="number" id="trace-temp" min="0" max="80" value="25">
+</div>
+<div class="calc-row">
+<label>Capa:</label>
+<select id="trace-layer">
+<option value="outer">Exterior</option>
+<option value="inner">Interior</option>
+</select>
+</div>
+<div class="calc-row">
+<label>Cobre (oz/ft²):</label>
+<select id="trace-copper">
+<option value="1">1 oz (35µm)</option>
+<option value="2">2 oz (70µm)</option>
+</select>
+</div>
+<div class="calc-row">
+<button onclick="calcTraceWidth()" style="background:var(--primary);color:white;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;">Calcular</button>
+</div>
+<div class="calc-result" id="trace-result">
+<div class="value">Introduce los valores y pulsa Calcular</div>
+</div>
+</div>
+
+<script>
+function calcTraceWidth() {
+  const I = parseFloat(document.getElementById('trace-current').value);
+  const T = parseFloat(document.getElementById('trace-temp').value);
+  const layer = document.getElementById('trace-layer').value;
+  const cu = parseFloat(document.getElementById('trace-copper').value);
+
+  if (isNaN(I) || I <= 0) { alert('Introduce una corriente válida'); return; }
+
+  // IPC-2221 formula
+  const k = layer === 'outer' ? 0.048 : 0.024;
+  const maxTemp = 100; // FR4 Tg
+  const deltaT = maxTemp - T;
+  const area = Math.pow(I / (k * Math.pow(deltaT, 0.44)), 1 / 0.725); // mil^2
+  const mil = Math.sqrt(area);
+  const mm = mil * 0.0254;
+  const widthMm = mm / cu; // thicker copper = narrower trace for same current
+
+  // Practical recommendation
+  const recMm = Math.max(widthMm, I * 1.0); // 1 mm per A minimum
+
+  document.getElementById('trace-result').innerHTML = `
+    <div class="value">Área sección transversal = ${area.toFixed(1)} mil²</div>
+    <div class="value">Ancho mínimo teórico = ${widthMm.toFixed(3)} mm (${mil.toFixed(0)} mil)</div>
+    <div class="value" style="color:var(--accent);">Ancho recomendado práctico = ${recMm.toFixed(2)} mm → <strong>${(Math.ceil(recMm/0.1)*0.1).toFixed(1)} mm</strong></div>
+    <div class="value">Resistencia estimada ≈ ${(1.72e-8 / (recMm*1e-3 * 35e-6 * cu) * 1000).toFixed(4)} mΩ/cm</div>
+    <div class="value">Potencia disipada ≈ ${(I*I*1.72e-8/(recMm*1e-3*35e-6*cu)*1000).toFixed(4)} W/cm</div>
+  `;
+}
+</script>
+
+<h2>10.2 Plano de Tierra (Ground Plane)</h2>
+
+<p>El plano de tierra es la base de cualquier diseño PCB bien hecho. Proporciona referencia estable, protección EMC y retorno de corriente.</p>
+
+<h3>Principios fundamentales:</h3>
+<ul>
+<li><strong>Continuidad:</strong> El plano debe ser lo más continuo posible. Evitar cortes y slots.</li>
+<li><strong>Ruta de retorno:</strong> Toda corriente retorna por el camino de menor impedancia (inmediatamente bajo la traza de señal).</li>
+<li><strong>Partición por dominios:</strong> separar AGND (análogo), DGND (digital), PGND (potencia) conectándolos en un solo punto.</li>
+</ul>
+
+<div class="diagram">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="300" fill="#1a1a2e"/>
+  <!-- Ground plane -->
+  <rect x="20" y="20" width="560" height="260" fill="#1b5e20" stroke="#2e7d32" stroke-width="2"/>
+  <text x="50" y="50" fill="white" font-size="14" font-family="monospace">GND PLANE</text>
+  <!-- Analog section -->
+  <rect x="40" y="80" width="120" height="80" fill="none" stroke="#4caf50" stroke-width="1" stroke-dasharray="4"/>
+  <text x="50" y="125" fill="#4caf50" font-size="11" font-family="monospace">AGND</text>
+  <!-- Digital section -->
+  <rect x="180" y="80" width="180" height="80" fill="none" stroke="#2196f3" stroke-width="1" stroke-dasharray="4"/>
+  <text x="190" y="125" fill="#2196f3" font-size="11" font-family="monospace">DGND</text>
+  <!-- Power section -->
+  <rect x="400" y="80" width="160" height="80" fill="none" stroke="#ff9800" stroke-width="1" stroke-dasharray="4"/>
+  <text x="410" y="125" fill="#ff9800" font-size="11" font-family="monospace">PGND</text>
+  <!-- Single point connection -->
+  <circle cx="300" cy="200" r="6" fill="white"/>
+  <text x="270" y="225" fill="white" font-size="10" font-family="monospace">Star Point</text>
+  <!-- Traces above -->
+  <line x1="100" y1="80" x2="100" y2="160" stroke="#f44336" stroke-width="3"/>
+  <text x="80" y="75" fill="#f44336" font-size="9">Signal</text>
+  <!-- Via stitching -->
+  <circle cx="60" cy="200" r="4" fill="#76ff03" stroke="none"/>
+  <circle cx="100" cy="200" r="4" fill="#76ff03" stroke="none"/>
+  <circle cx="140" cy="200" r="4" fill="#76ff03" stroke="none"/>
+  <circle cx="180" cy="200" r="4" fill="#76ff03" stroke="none"/>
+  <text x="60" y="240" fill="#76ff03" font-size="9" font-family="monospace" text-anchor="middle">Via Stitching</text>
+</svg>
+<div class="label">Figura 10.1: Partición de planos de tierra con conexión en estrella</div>
+</div>
+
+<div class="box box-success">
+<span class="box-title">✅ Buenas prácticas del plano de tierra</span>
+<ol style="padding-left:20px;">
+<li>Usar al menos una capa completa dedicated al GND</li>
+<li>Colocar vías de "stitching" entre planos en diferentes capas (cada ≤ λ/20)</li>
+<li>Nunca cruzar una traza de señal de alta velocidad sobre una ranura en el plano</li>
+<li>Col condensadores de desacorde cerca de los pines de alimentación</li>
+<li>Ruta de alimentación en estrella para evitar bucles</li>
+</ol>
+</div>
+
+<h2>10.3 Capacitores de Desacoplo (Decoupling)</h2>
+
+<p>Los condensadores de desacople proporcionan energía instantánea a los ICs y filtran el ruido de alta frecuencia.</p>
+
+<h3>Reglas de colocación:</h3>
+<table>
+<thead>
+<tr>
+<th>Regla</th>
+<th>Descripción</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Cap para cada IC</td><td>Mínimo 1 condensador por IC</td><td>100 nF cerámico (MLCC)</td></tr>
+<tr><td>Colocación</td><td>Lo más cerca posible del pin VCC</td><td>< 3 mm del pin</td></tr>
+<tr><td>Capacidad de bulk</td><td>Por cada grupo de 5-10 ICs</td><td>10 µF - 100 µF tantalum o MLCC</td></tr>
+<tr><td>Frecuencia múltiple</td><td>Usar 2-3 valores para cubrir el espectro</td><td>100pF + 10nF + 1µF</td></tr>
+<tr><td>Tipo</td><td>MLCC X7R o X5R para < 1µF</td><td>ESR bajo es crítico</td></tr>
+<tr><td>Posición VCC/GND</td><td>Entre pin VCC y via al plano GND</td><td>Trayectoria mínima de retorno</td></tr>
+</tbody>
+</table>
+
+<div class="formula">
+<strong>Impedancia de un condensador (modelo simplificado):</strong><br>
+\( Z_{total} = ESR + j\omega L_{ESL} + \frac{1}{j\omega C} \)<br>
+<div class="label">La impedancia mínima ocurre en la frecuencia de resonancia: \( f_{res} = \frac{1}{2\pi\sqrt{LC_{ESL}}} \)</div>
+</div>
+
+<h3>Diagrama de colocación correcta vs incorrecta:</h3>
+<div class="diagram">
+<svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="200" fill="#fafafa" stroke="#ccc"/>
+  <!-- INCORRECT: cap far away -->
+  <text x="150" y="20" fill="#c62828" font-size="13" font-family="monospace" text-anchor="middle">❌ INCORRECTO</text>
+  <rect x="50" y="60" width="40" height="16" fill="#0d47a1" stroke="#0d47a1"/>
+  <text x="70" y="85" fill="white" font-size="8">IC</text>
+  <!-- Long traces to cap -->
+  <rect x="120" y="140" width="20" height="10" fill="#ff9800" stroke="none"/>
+  <text x="130" y="160" fill="#333" font-size="7">100nF</text>
+  <line x1="85" y1="76" x2="120" y2="145" stroke="#c62828" stroke-width="2" stroke-dasharray="4"/>
+  <line x1="55" y1="76" x2="160" y2="145" stroke="#c62828" stroke-width="2" stroke-dasharray="4"/>
+  <!-- CORRECT: cap close -->
+  <text x="450" y="20" fill="#2e7d32" font-size="13" font-family="monospace" text-anchor="middle">✅ CORRECTO</text>
+  <rect x="380" y="60" width="40" height="16" fill="#0d47a1" stroke="#0d47a1"/>
+  <text x="400" y="85" fill="white" font-size="8">IC</text>
+  <rect x="425" y="72" width="20" height="10" fill="#ff9800" stroke="none"/>
+  <text x="435" y="92" fill="#333" font-size="7">100nF</text>
+  <line x1="420" y1="78" x2="425" y2="77" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="380" y1="78" x2="445" y2="77" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="435" y1="82" x2="435" y2="110" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="435" y="125" fill="#2e7d32" font-size="7">via → GND</text>
+</svg>
+<div class="label">Figura 10.2: Colocación incorrecta (largas trazas) vs correcta (junto al pin)</div>
+</div>
+
+<h2>10.4 Capacidad de Corriente de Vías</h2>
+
+<p>Las vías transportan corriente entre capas y también disipan calor. Su resistencia y capacidad dependen de las dimensiones.</p>
+
+<div class="formula">
+<strong>Resistencia de una via (cilíndrica):</strong><br>
+\( R_{via} = \frac{\rho \cdot l}{\pi (D/2)^2 - \pi (D/2 - t)^2} \)<br>
+<p>Donde ρ = 1.72×10⁻⁸ Ω·m (cobre), l = espesor del PCB (1.6mm), D = diámetro del drill, t = grosor de cobre</p>
+</div>
+
+<table>
+<caption><strong>Tabla 10.2:</strong> Capacidad de corriente de vias (∆T = 10°C, cobre 25µm en pared)</caption>
+<thead>
+<tr>
+<th>Diámetro drill (mm)</th>
+<th>Diámetro finish (mm)</th>
+<th>Resistencia aprox.</th>
+<th>Corriente máxima (A)</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0.20</td><td>0.30</td><td>~25 mΩ</td><td>0.5</td></tr>
+<tr><td>0.30</td><td>0.45</td><td>~12 mΩ</td><td>1.0</td></tr>
+<tr><td>0.50</td><td>0.70</td><td>~5 mΩ</td><td>2.0</td></tr>
+<tr><td>0.80</td><td>1.00</td><td>~2 mΩ</td><td>3.5</td></tr>
+<tr><td>1.00</td><td>1.20</td><td>~1.5 mΩ</td><td>5.0</td></tr>
+<tr><td>1.50</td><td>1.70</td><td>~0.7 mΩ</td><td>7.0</td></tr>
+<tr><td>2.00</td><td>2.20</td><td>~0.4 mΩ</td><td>10.0</td></tr>
+</tbody>
+</table>
+
+<div class="box box-info">
+<span class="box-title">💡 Regla práctica para vías</span>
+<p>Para corrientes &gt; 3A, usar múltiples vias en paralelo o pads térmicos con arrays de vías. Una via de 0.3mm puede manejar ~1A con seguridad. Para caminos de potencia, preferir 0.5mm o mayor, o poner N vias de 0.3mm: \( I_{total} = N \times I_{via} \) con derating del 80% por proximidad.</p>
+</div>
+
+<h2>10.5 Thermal Relief (Alivio Térmico)</h2>
+
+<p>El thermal relief (o thermal tie) es el patrón de "spokes" (radios) que conecta un pad al plano de cobre circundante. Mejora la soldabilidad al reducir la disipación de calor durante el soldado.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="160" fill="#fafafa" stroke="#ccc"/>
+  <!-- Pad with thermal relief -->
+  <circle cx="100" cy="80" r="30" fill="#90a4ae" stroke="#546e7a" stroke-width="1"/>
+  <circle cx="100" cy="80" r="10" fill="none" stroke="#37474f" stroke-width="2"/>
+  <!-- Spokes -->
+  <line x1="70" y1="80" x2="90" y2="80" stroke="#546e7a" stroke-width="6"/>
+  <line x1="110" y1="80" x2="130" y2="80" stroke="#546e7a" stroke-width="6"/>
+  <line x1="100" y1="50" x2="100" y2="70" stroke="#546e7a" stroke-width="6"/>
+  <line x1="100" y1="90" x2="100" y2="110" stroke="#546e7a" stroke-width="6"/>
+  <text x="100" y="155" fill="#37474f" font-size="11" font-family="monospace" text-anchor="middle">Thermal Relief (4 spokes)</text>
+  <!-- Direct connection (no relief) -->
+  <circle cx="300" cy="80" r="30" fill="#ff9800" stroke="#e65100" stroke-width="1"/>
+  <circle cx="300" cy="80" r="10" fill="none" stroke="#37474f" stroke-width="2"/>
+  <text x="300" y="155" fill="#37474f" font-size="11" font-family="monospace" text-anchor="middle">Direct Connection</text>
+</svg>
+<div class="label">Figura 10.3: Patrón de thermal relief (izq.) vs conexión directa (der.)</div>
+</div>
+
+<h3>¿Cuándo usar thermal relief y cuándo no?</h3>
+<table>
+<thead>
+<tr>
+<th>Situación</th>
+<th>Recomendación</th>
+<th>Razón</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Señales digitales de baja corriente</td><td>✅ Thermal relief</td><td>Soldabilidad mejorada</td></tr>
+<tr><td>Pines de alimentación (&gt;1A)</td><td>❌ Conexión directa</td><td>Menor resistencia, mejor disipación</td></tr>
+<tr><td>Pads de componentes SMD</td><td>✅ Thermal relief</td><td>Evitar tombstoning (Manhattan effect)</td></tr>
+<tr><td>QFN/DFN thermal pad central</td><td>❌ Conexión directa (con vías)</td><td>Disipación térmica al plano GND</td></tr>
+<tr><td>Transformadores de potencia</td><td>❌ Conexión directa</td><td>Corrientes altas, necesita baja impedancia</td></tr>
+<tr><td>Conector de entrada alimentación</td><td>❌ Conexión directa</td><td>Path de mínima resistencia</td></tr>
+</tbody>
+</table>
+
+<div class="box box-warning">
+<span class="box-title">⚠️ Parámetros típicos de thermal relief</span>
+<ul>
+<li><strong>Ancho de spoke:</strong> 0.20-0.30 mm (8-12 mil)</li>
+<li><strong>Gap (aire entre spoke y plano):</strong> 0.20-0.25 mm</li>
+<li><strong>Número de spokes:</strong> 4 estándar, 2 para pads pequeños</li>
+</ul>
+</div>
+
+<h2>10.6 DFM Básico (Design for Manufacturing)</h2>
+
+<p>DFM asegura que tu diseño pueda fabricarse de forma fiable y económica. Los fabricantes especifican reglas mínimas.</p>
+
+<table>
+<caption><strong>Tabla 10.3:</strong> Reglas DFM típicas (tecnología estándar)</caption>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Mínimo estándar</th>
+<th>Recomendado</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Ancho de traza</td><td>0.15 mm (6 mil)</td><td>0.20 mm (8 mil)</td></tr>
+<tr><td>Espacio entre trazas</td><td>0.15 mm (6 mil)</td><td>0.20 mm (8 mil)</td></tr>
+<tr><td>Anillo de pad (annular ring)</td><td>0.10 mm (4 mil)</td><td>0.15 mm (6 mil)</td></tr>
+<tr><td>Diámetro de via drill</td><td>0.30 mm (12 mil)</td><td>0.50 mm (20 mil)</td></tr>
+<tr><td>Pad de via (cupper)</td><td>0.50 mm</td><td>0.70 mm</td></tr>
+<tr><td>Espacio cobre a borde</td><td>0.25 mm</td><td>0.50 mm</td></tr>
+<tr><td>Relación de aspecto</td><td>8:1</td><td>6:1</td></tr>
+<tr><td>Sobreposición soldmask</td><td>±0.05 mm</td><td>±0.075 mm</td></tr>
+<tr><td>Silkscreen sobre pad</td><td>No permitido</td><td>Evitar siempre</td></tr>
+</tbody>
+</table>
+
+<h3>Lista de verificación DFM (DRC):</h3>
+<ol class="steps">
+<li><strong>Regla de diseño (DRC):</strong> Ejecutar las reglas de espaciado mínimo del fabricante. Verificar DFM > Design Rule Check en tu EDA.</li>
+<li><strong>Thermals en pads grandes:</strong> Usar thermal relief para pads conectados a planos de cobre grandes.</li>
+<li><strong>Panelización:</strong> Si la placa es pequeña, considerar paneles con break-away tabs o V-grooves.</li>
+<li><strong>Fiducial markers:</strong> Agregar 3+ puntos de referencia para ensamblaje automático.</li>
+<li><strong>Pasante:</strong> Verificar que los componentes puedan ser soldados por reflow (no interferencias).</li>
+<li><strong>Huecos de montaje:</strong> Agregar mounting holes con connectores GND apropiados.</li>
+<li><strong>Test points:</strong> Agregar puntos de prueba para señales críticas y alimentación.</li>
+<li><strong>Serigrafía clara:</strong> Referencias de componentes legibles, orientación de ICs visible.</li>
+</ol>
+
+<div class="box box-danger">
+<span class="box-title">⚠️ DFM: Errores comunes que cuestan dinero</span>
+<ul>
+<li>Olvidar el fillet en conexiones de traza a pad (causa ácido atrapado)</li>
+<li>Pads de via dentro de pads SMD causando soldaduras frágiles</li>
+<li>Zonas de cobre flotantes (dead copper) → eliminar</li>
+<li>Márgenes de corte insuficientes →-errors de fabricación</li>
+<li>Silkscreen sobre pads → confusión en ensamblaje</li>
+</ul>
+</div>
+
+<h2>10.7 Creepage y Clearance para Alto Voltaje</h2>
+
+<p>El <strong>creepage</strong> (distancia de fuga superficial) y la <strong>clearance</strong> (distancia en aire) son distancias mínimas entre conductores para evitar arcos eléctricos y跟踪 superficial.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg">
+  <rect width="500" height="180" fill="#fafafa" stroke="#ccc"/>
+  <!-- PCB cross-section representation -->
+  <!-- Left pad (high voltage) -->
+  <rect x="80" y="50" width="40" height="10" fill="#c62828" stroke="#333"/>
+  <text x="100" y="45" fill="#333" font-size="9" text-anchor="middle">HV Pad</text>
+  <!-- Right pad (low voltage) -->
+  <rect x="360" y="50" width="40" height="10" fill="#1565c0" stroke="#333"/>
+  <text x="380" y="45" fill="#333" font-size="9" text-anchor="middle">LV Pad</text>
+  <!-- Creepage path (across surface) -->
+  <path d="M 120 55 Q 240 40 360 55" fill="none" stroke="#f57f17" stroke-width="2" stroke-dasharray="4"/>
+  <text x="240" y="38" fill="#f57f17" font-size="9" text-anchor="middle">Creepage</text>
+  <!-- Clearance (air) -->
+  <line x1="120" y1="55" x2="360" y2="55" stroke="#1565c0" stroke-width="1" stroke-dasharray="6,3"/>
+  <text x="240" y="72" fill="#1565c0" font-size="10" text-anchor="middle">Clearance (aire)</text>
+  <!-- Arrow -->
+  <line x1="125" y1="110" x2="125" y2="140" stroke="#f57f17" stroke-width="1.5"/>
+  <path d="M 120 138 L 125 145 L 130 138" fill="none" stroke="#f57f17" stroke-width="1.5"/>
+  <text x="125" y="160" fill="#f57f17" font-size="8" text-anchor="middle">Superficie</text>
+  <text x="240" y="110" fill="#333" font-size="10" text-anchor="middle">Distancias de seguridad</text>
+</svg>
+<div class="label">Figura 10.4: Clearance (aire) vs Creepage (superficie)</div>
+</div>
+
+<table>
+<caption><strong>Tabla 10.4:</strong> Distancias de seguridad según IEC 60664-1 (grados de polución 2)</caption>
+<thead>
+<tr>
+<th>Voltaje de trabajo (Vrms)</th>
+<th>Clearance mínima (mm)</th>
+<th>Creepage básico (mm)</th>
+<th>Con aislamiento reforzado (mm)</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>50 VDC</td><td>0.2</td><td>0.6</td><td>1.2</td></tr>
+<tr><td>100 VDC</td><td>0.4</td><td>0.8</td><td>1.6</td></tr>
+<tr><td>150 VDC</td><td>0.6</td><td>1.0</td><td>2.0</td></tr>
+<tr><td>300 VDC</td><td>1.2</td><td>1.8</td><td>3.6</td></tr>
+<tr><td>600 VDC</td><td>2.4</td><td>3.2</td><td>6.4</td></tr>
+<tr><td>1000 VDC</td><td>4.0</td><td>5.0</td><td>10.0</td></tr>
+<tr><td>1500 VDC</td><td>6.0</td><td>8.0</td><td>12.0</td></tr>
+</tbody>
+</table>
+
+<div class="formula">
+<strong>Tensión de ensayo para rigidez dieléctrica:</strong><br>
+\( V_{test} = 2 \times V_{working} + 1000 \text{ V} \) (durante 60 segundos, AC)
+</div>
+
+<h3>Aumentar clearance y creepage:</h3>
+<ol class="steps">
+<li><strong>Malla de aislamiento:</strong> Cortar el plano de GND entre zonas de alto y bajo voltaje.</li>
+<li><strong>Slots/Ranuras:</strong> Abrir ranuras en la PCB entre secciones de diferente voltaje (aumenta creepage).</li>
+<li><strong>Conformally coating:</strong> Barniz conformal tipo AR (acrílico) reduce el grado de polución efectivo.</li>
+<li><strong>Keeping out zones:</strong> Dejar áreas sin cobre alrededor de componentes de alto voltaje.</li>
+<li><strong>Conectores:</strong> Usar conectores con espaciado adecuado (≥ tensión de trabajo / 100 × 2.54 mm).</li>
+</ol>
+
+<div class="box box-danger">
+<span class="box-title">🚨 Seguridad en PCB de alto voltaje</span>
+<ul>
+<li><strong>Protección RCD:</strong> Para tensiones &gt; 30VAC/60VDC implementar protección residual.</li>
+<li><strong>Doble aislamiento:</strong> Prefiere doble aislamiento o aislamiento reforzado en equipos accesibles.</li>
+<li><strong>TVS / Spark gaps:</strong> Considerar protección contra sobretensiones y descargas.</li>
+<li><strong>Certificación:</strong> No asumir tensiones &gt; 60VDC sin consultar normativas (IEC 62368-1, UL 60950).</li>
+</ul>
+</div>
+
+<h2>10.8 Resumen: Checklist Final de Diseño</h2>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Verificación</th>
+<th>OK</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>Ancho de traza ≥ requerido por corriente</td><td>☐</td></tr>
+<tr><td>2</td><td>Plano de tierra continuo, sin ranuras bajo trazas críticas</td><td>☐</td></tr>
+<tr><td>3</td><td>Condensadores de desacoplo en cada IC (&lt; 3mm)</td><td>☐</td></tr>
+<tr><td>4</td><td>Vías de stitching entre capas de GND</td><td>☐</td></tr>
+<tr><td>5</td><td>Thermal relief en pads de montaje manual</td><td>☐</td></tr>
+<tr><td>6</td><td>DFC limpio: ancho, espaciado, annular ring mínimos</td><td>☐</td></tr>
+<tr><td>7</td><td>Clearance/creepage para secciones de alto voltaje</td><td>☐</td></tr>
+<tr><td>8</td><td>Test points en señales críticas</td><td>☐</td></tr>
+<tr><td>9</td><td>Fiducial markers para pick-and-place</td><td>☐</td></tr>
+<tr><td>10</td><td>Serigrafía clara, sin superposición con pads</td><td>☐</td></tr>
+</tbody>
+</table>
+
+<div class="box box-success">
+<span class="box-title">📝 Conclusión</span>
+<p>Un buen diseño PCB es el resultado de aplicar consistentemente estas reglas. Comenzar con márgenes generosos y refinar iteradamente. Siempre verificar con el fabricante sus capacidades antes de enviar a producción.</p>
+</div>
+
+<p style="text-align:center; color:var(--text-secondary); margin-top:30px;">— Fin Capítulo 10 —</p>
+
+<script>
+// Initialize MathJax
+if (window.MathJax) {
+  window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+}
+</script>
+</body>
+</html>

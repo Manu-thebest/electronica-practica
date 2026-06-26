@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cap 5 — Amplificadores Operacionales</title>
+<link rel="stylesheet" href="css/style.css">
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</head>
+<body>
+
+<div class="cover">
+  <div class="icon">🔬</div>
+  <h1>Capítulo 5</h1>
+  <h2>Amplificadores Operacionales</h2>
+</div>
+
+<div class="toc">
+  <h2>📋 Índice — Capítulo 5</h2>
+  <ul>
+    <li><a href="#sec5-1"><span class="num">5.1</span> Reglas de Oro del OpAmp</a></li>
+    <li><a href="#sec5-2"><span class="num">5.2</span> Amplificador Inversor</a></li>
+    <li><a href="#sec5-3"><span class="num">5.3</span> Amplificador No-Inversor</a></li>
+    <li><a href="#sec5-4"><span class="num">5.4</span> Seguidor de Voltaje</a></li>
+    <li><a href="#sec5-5"><span class="num">5.5</span> Amplificador Sumador</a></li>
+    <li><a href="#sec5-6"><span class="num">5.6</span> Amplificador Diferencial</a></li>
+    <li><a href="#sec5-7"><span class="num">5.7</span> Comparador</a></li>
+    <li><a href="#sec5-8"><span class="num">5.8</span> Trigger de Schmitt</a></li>
+    <li><a href="#calc-opamp"><span class="num">5.C</span> Calculadora de Ganancia</a></li>
+    <li><a href="#resumen"><span class="num">5.R</span> Resumen y Errores Comunes</a></li>
+  </ul>
+</div>
+
+<h2 id="sec5-1">5.1 Regas de Oro del OpAmp Ideal</h2>
+<p>Estas reglas simplifican el análisis de cualquier circuito con operacionales:</p>
+<ol>
+  <li><strong>Impedancia de entrada infinita</strong>: No fluye corriente hacia los terminales + ni -</li>
+  <li><strong>Impedancia de salida cero</strong>: Puede entregar corriente sin caer el voltaje</li>
+  <li><strong>Ganancia infinita en lazo abierto</strong>: Sin retroalimentación, la salida satura</li>
+  <li><strong>Cortocircuito virtual</strong>: $V_+ = V_-$ cuando hay retroalimentación negativa</li>
+</ol>
+
+<h2 id="sec5-2">5.2 Amplificador Inversor</h2>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle A_v = -\frac{R_f}{R_{in}}$</strong></div>
+  <div class="label">Ganancia negativa = salida invertida 180°</div>
+</div>
+<div class="box box-info">
+  <span class="box-title">💡 Diseño rápido</span>
+  $R_f = 10\text{k}\Omega$, $R_{in} = 1\text{k}\Omega$ → Ganancia = $-10$ (amplifica 10× e invierte).<br>
+  Corriente de entrada: $I_{in} = V_{in}/R_{in}$. Si $V_{in}=1V$, $I_{in}=1mA$.
+</div>
+
+<h2 id="sec5-3">5.3 Amplificador No-Inversor</h2>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle A_v = 1 + \frac{R_f}{R_1}$</strong></div>
+  <div class="label">Ganancia ≥ 1, salida en fase con entrada</div>
+</div>
+<div class="box box-info">
+  <span class="box-title">💡 Casos útiles</span>
+  • $R_f = 0$ → $A_v = 1$ (buffer/seguidor)<br>
+  • $R_f = R_1$ → $A_v = 2$<br>
+  • $R_f = 9R_1$ → $A_v = 10$
+</div>
+
+<h2 id="sec5-4">5.4 Seguidor de Voltaje (Buffer)</h2>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{out} = V_{in}$</strong></div>
+  <div class="label">Conecta salida directamente al terminal inversor ($R_f=0$, $R_1=\infty$)</div>
+</div>
+<div class="box box-success">
+  <span class="box-title">🎯 ¿Para qué sirve?</span>
+  Separa un sensor de alta impedancia (termopar, micrófono electret) de una carga que consume corriente. Ganancia de corriente ×1000 o más, aunque el voltaje no crezca.
+</div>
+
+<h2 id="sec5-5">5.5 Amplificador Sumador</h2>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{out} = -R_f\left(\frac{V_1}{R_1}+\frac{V_2}{R_2}+\frac{V_3}{R_3}\right)$</strong></div>
+</div>
+<p>Si todas las R son iguales: $V_{out} = -(V_1+V_2+V_3)$. ¡Suma inversora!</p>
+
+<h2 id="sec5-6">5.6 Amplificador Diferencial</h2>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{out} = \frac{R_f}{R_1}(V_2-V_1) \quad$ si $\frac{R_1}{R_f}=\frac{R_2}{R_g}$</strong></div>
+</div>
+<div class="box box-info">
+  <span class="box-title">💡 ¿Cuándo usarla?</span>
+  Cuando necesitas medir la diferencia entre dos señales con ruido común. Puente de Wheatstone, sensores de corriente, audio balanceado.
+</div>
+
+<h2 id="sec5-7">5.7 Comparador</h2>
+<div class="formula-box">
+  $V_{out}=\begin{cases}+V_{CC} & \text{si }V_+>V_-\\-V_{EE} & \text{si }V_+<V_-\end{cases}$
+</div>
+<div class="box box-warning">
+  <span class="box-title">⚠️ No es un OpAmp</span>
+  Un comparador está diseñado para conmutar rápido (LM393, LM311). Los OpAmps son Lentos. Para señales rápidas, usa un comparador.
+</div>
+
+<h2 id="sec5-8">5.8 Trigger de Schmitt</h2>
+<p>Agrega histéresis a un comparador para falsas conmutaciones por ruido:</p>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{TH+} = V_{ref}\frac{R_2}{R_1+R_2}+V_{OH}\frac{R_1}{R_1+R_2}$</strong></div>
+</div>
+<div class="formula">
+  <div class="formula-box"><strong>$\displaystyle V_{TH-} = V_{ref}\frac{R_2}{R_1+R_2}-V_{OL}\frac{R_1}{R_1+R_2}$</strong></div>
+</div>
+<div class="box box-info">
+  <span class="box-title">� Histeresis</span>
+  $V_H = V_{TH+} - V_{TH-}$. Cuanto mayor, más inmune al ruido. Típico: 50-200mV.
+</div>
+
+<h2 id="calc-opamp">5.C Calculadora de Ganancia Interactiva</h2>
+<div class="calc">
+  <h4>� Calculadora OpAmp</h4>
+  <div class="calc-row">
+    <label>Tipo:</label>
+    <select id="opamp-type" onchange="calcOpAmp()">
+      <option value="inverting">Inversor</option>
+      <option value="noninverting">No-Inversor</option>
+      <option value="summing">Sumador (3 entradas)</option>
+    </select>
+  </div>
+  <div class="calc-row">
+    <label>R<sub>f</sub> (Ω):</label>
+    <input type="number" id="opamp-rf" value="10000" oninput="calcOpAmp()">
+  </div>
+  <div class="calc-row">
+    <label>R<sub>1</sub> (Ω):</label>
+    <input type="number" id="opamp-r1" value="1000" oninput="calcOpAmp()">
+  </div>
+  <div class="calc-row" id="opamp-r2-row" style="display:none">
+    <label>R<sub>2</sub> (Ω):</label>
+    <input type="number" id="opamp-r2" value="1000" oninput="calcOpAmp()">
+  </div>
+  <div class="calc-result" id="opamp-result">Ganancia = -10 V/V</div>
+</div>
+<script>
+function calcOpAmp() {
+  const type = document.getElementById('opamp-type').value;
+  const Rf = parseFloat(document.getElementById('opamp-rf').value) || 0;
+  const R1 = parseFloat(document.getElementById('opamp-r1').value) || 1;
+  const R2 = parseFloat(document.getElementById('opamp-r2')?.value) || 1;
+  document.getElementById('opamp-r2-row').style.display = type==='summing'?'flex':'none';
+  let result = '';
+  if (type === 'inverting') {
+    const Av = -Rf/R1;
+    result = `Ganancia = ${Av.toFixed(2)} V/V (${20*Math.log10(Math.abs(Av)).toFixed(1)} dB)`;
+  } else if (type === 'noninverting') {
+    const Av = 1 + Rf/R1;
+    result = `Ganancia = ${Av.toFixed(2)} V/V (${20*Math.log10(Av).toFixed(1)} dB)`;
+  } else {
+    const Vsum = 1/R1 + 1/R2 + 1/1000;
+    result = `Vout = -Rf × (${(1/R1).toFixed(4)} + ${(1/R2).toFixed(4)} + 0.001) × Vin`;
+  }
+  document.getElementById('opamp-result').innerHTML = `<div class="value">${result}</div>`;
+}
+calcOpAmp();
+</script>
+
+<h2 id="resumen">5.R Resumen y Errores Comunes</h2>
+<table>
+  <tr><th>Fórmula</th><th>Uso</th></tr>
+  <tr><td>$A_v = -R_f/R_{in}$</td><td>Inversor</td></tr>
+  <tr><td>$A_v = 1+R_f/R_1$</td><td>No-inversor</td></tr>
+  <tr><td>$V_{out} = -R_f\sum(V_i/R_i)$</td><td>Sumador</td></tr>
+  <tr><td>$V_{TH\pm} = V_{ref}\frac{R_2}{R_1+R_2} \pm V_{O}\frac{R_1}{R_1+R_2}$</td><td>Schmitt trigger</td></tr>
+</table>
+<div class="box box-danger">
+  <span class="box-title">⚠️ Errores comunes</span>
+  <ol>
+    <li>Olvidar la alimentación del OpAmp (±Vcc)</li>
+    <li>Conectar señal al terminal equivocado (inversor vs no-inversor)</li>
+    <li>Usar un OpAmp lento para señales rápidas</li>
+    <li>No calcular el ancho de banda: GBW = ganancia × fmax</li>
+    <li>Ignorar el límite de slew rate (V/µs)</li>
+  </ol>
+</div>
+
+</body>
+</html>

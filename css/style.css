@@ -1,0 +1,164 @@
+:root {
+  --primary: #1565c0;
+  --primary-dark: #0d47a1;
+  --primary-light: #e3f2fd;
+  --accent: #e65100;
+  --accent-light: #fff3e0;
+  --success: #2e7d32;
+  --success-light: #e8f5e9;
+  --warning: #f57f17;
+  --warning-light: #fffde7;
+  --danger: #c62828;
+  --danger-light: #ffebee;
+  --info: #00838f;
+  --info-light: #e0f7fa;
+  --surface: #ffffff;
+  --bg: #f5f5f5;
+  --text: #212121;
+  --text-secondary: #616161;
+  --border: #e0e0e0;
+  --code-bg: #f5f5f5;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg);
+}
+/* === PAGE === */
+@page {
+  size: A4;
+  margin: 18mm 16mm 22mm 16mm;
+  @top-center {
+    content: "Electrónica Práctica — Guía Completa v2";
+    font-size: 8pt; color: #999; font-family: 'Segoe UI', sans-serif;
+  }
+  @bottom-center {
+    content: "— " counter(page) " —";
+    font-size: 8pt; color: #999;
+  }
+}
+/* === COVER === */
+.cover {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+  color: white;
+  page-break-after: always;
+}
+.cover h1 { font-size: 36pt; margin-bottom: 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; color: white; }
+.cover h2 { font-size: 18pt; opacity: 0.9; font-weight: 400; border: none; color: white; }
+.cover .icon { font-size: 80px; margin-bottom: 20px; }
+.cover .meta { margin-top: 40px; font-size: 10pt; opacity: 0.7; }
+
+/* === TOC === */
+.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; page-break-after: always; }
+.toc h2 { border: none; margin-top: 0; color: var(--primary-dark); }
+.toc ul { list-style: none; padding: 0; }
+.toc li { padding: 4px 0; }
+.toc a { color: var(--primary); text-decoration: none; display: flex; align-items: baseline; }
+.toc a:hover { text-decoration: underline; }
+.toc .num { display: inline-block; min-width: 30px; font-weight: bold; color: var(--primary-dark); }
+.toc .sub { padding-left: 30px; font-size: 9.5pt; }
+
+/* === HEADINGS === */
+h1 { font-size: 24pt; color: var(--primary-dark); margin: 24px 0 10px; border-bottom: 3px solid var(--primary); padding-bottom: 8px; page-break-after: avoid; }
+h2 { font-size: 18pt; color: var(--primary); margin: 20px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; page-break-after: avoid; }
+h3 { font-size: 14pt; color: var(--primary-dark); margin: 14px 0 6px; page-break-after: avoid; }
+h4 { font-size: 11pt; color: var(--accent); margin: 10px 0 4px; page-break-after: avoid; }
+
+p { margin: 5px 0; }
+
+/* === BOXES === */
+.box {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  page-break-inside: avoid;
+}
+.box-title { font-weight: 700; display: block; margin-bottom: 6px; font-size: 10pt; }
+.box-info { background: var(--primary-light); border-left: 4px solid var(--primary); }
+.box-info .box-title { color: var(--primary-dark); }
+.box-warning { background: var(--warning-light); border-left: 4px solid var(--warning); }
+.box-warning .box-title { color: #e65100; }
+.box-danger { background: var(--danger-light); border-left: 4px solid var(--danger); }
+.box-danger .box-title { color: var(--danger); }
+.box-success { background: var(--success-light); border-left: 4px solid var(--success); }
+.box-success .box-title { color: var(--success); }
+
+/* === FORMULAS === */
+.formula {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  padding: 14px 20px;
+  margin: 10px 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+.formula-box {
+  background: #fafafa;
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  padding: 10px 24px;
+  margin: 8px 0;
+  display: inline-block;
+  font-size: 11pt;
+}
+.formula .label { font-size: 9pt; color: var(--text-secondary); margin-top: 4px; }
+.formula-inline { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Cambria Math', 'Latin Modern Math', serif; }
+
+/* === TABLES === */
+table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 9.5pt; }
+th { background: var(--primary); color: white; padding: 7px 8px; text-align: left; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+tr:nth-child(even) td { background: #fafafa; }
+tr:hover td { background: var(--primary-light); }
+
+/* === DIAGRAMS === */
+.diagram { text-align: center; margin: 14px 0; page-break-inside: avoid; }
+.diagram svg { max-width: 100%; border: 1px solid var(--border); border-radius: 6px; background: white; }
+
+/* === CALCULATOR === */
+.calc { background: var(--surface); border: 2px solid var(--primary); border-radius: 8px; padding: 16px; margin: 12px 0; page-break-inside: avoid; }
+.calc h4 { color: var(--primary-dark); margin-top: 0; }
+.calc-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+.calc-row label { min-width: 120px; font-size: 9.5pt; }
+.calc-row input, .calc-row select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 10pt; flex: 1; min-width: 100px; }
+.calc-row input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(21,101,192,0.1); }
+.calc-result { background: var(--primary-light); padding: 10px 14px; border-radius: 4px; margin-top: 8px; font-size: 10pt; }
+.calc-result .value { font-weight: bold; color: var(--primary-dark); }
+
+/* === STEPS === */
+.steps { counter-reset: step; list-style: none; padding: 0; margin: 10px 0; }
+.steps li { counter-increment: step; position: relative; padding-left: 36px; margin: 8px 0; min-height: 24px; }
+.steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold; font-size: 10pt;
+}
+
+/* === GLOSSARY === */
+.glossary dt { font-weight: bold; color: var(--primary-dark); margin-top: 8px; }
+.glossary dd { margin-left: 16px; margin-bottom: 2px; }
+
+/* === BOM TABLE === */
+.bom th { background: #37474f; }
+.bom td:nth-child(2) { font-family: monospace; font-size: 9pt; }
+
+/* === SIMULATOR === */
+.sim { background: #263238; border-radius: 8px; padding: 16px; margin: 14px 0; page-break-inside: avoid; }
+.sim canvas { background: #1a1a2e; border-radius: 4px; width: 100%; max-width: 600px; }
+.sim-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.sim-controls label { color: #ccc; font-size: 9pt; }
+.sim-controls input[type="range"] { flex: 1; min-width: 80px; }

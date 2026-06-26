@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cap. 8 — Aplicaciones LED · Electrónica Práctica</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$','$'], ['\\(','\\)']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.calc { background: var(--surface); border: 2px solid var(--primary); border-radius: 8px; padding: 16px; margin: 12px 0; page-break-inside: avoid; }
+.calc h4 { color: var(--primary-dark); margin-top: 0; }
+.calc-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+.calc-row label { min-width: 120px; font-size: 9.5pt; }
+.calc-row input, .calc-row select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 10pt; flex: 1; min-width: 100px; }
+.calc-row input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(21,101,192,0.1); }
+.calc-result { background: var(--primary-light); padding: 10px 14px; border-radius: 4px; margin-top: 8px; font-size: 10pt; }
+.calc-result .value { font-weight: bold; color: var(--primary-dark); }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="icon">💡</div>
+  <h1>Capítulo 8</h1>
+  <h2>Aplicaciones LED — Fundamentos, Drivers y Gestión Térmica</h2>
+  <div class="meta">Electrónica Práctica v2 · 2026</div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>📋 Índice — Capítulo 8</h2>
+  <ul>
+    <li><span class="num">8.1</span> <a href="#cap8-1">Fundamentos del LED</a></li>
+    <li><span class="num">8.2</span> <a href="#cap8-2">Caída de Tensión Directa ($V_f$) por Color</a></li>
+    <li><span class="num">8.3</span> <a href="#cap8-3">Cálculo de Resistencia Limitadora</a></li>
+    <li><span class="num">8.4</span> <a href="#cap8-4">Teoría de Dimming por PWM</a></li>
+    <li><span class="num">8.5</span> <a href="#cap8-5">Drivers de Corriente Constante</a></li>
+    <li><span class="num">8.6</span> <a href="#cap8-6">Cálculo de Potencia en LEDs</a></li>
+    <li><span class="num">8.7</span> <a href="#cap8-7">Consideraciones Térmicas en LEDs de Potencia</a></li>
+  </ul>
+</div>
+
+<!-- ================================================================ -->
+<h1 id="cap8-1">8.1 Fundamentos del LED</h1>
+<p class="subtitle">El diodo emisor de luz (LED) es un semiconductor que convierte energía eléctrica en fotones. Comprender su comportamiento es esencial para diseñar cualquier sistema de iluminación.</p>
+
+<h3>¿Cómo funciona un LED?</h3>
+<p>Un LED es una unión PN polarizada directamente. Cuando los electrones cruzan la unión y se recombinan con los huecos, liberan energía en forma de <strong>fotones</strong>. La longitud de onda (color) de la luz emitida depende del <strong>band gap</strong> del material semiconductor:</p>
+
+<div class="box box-info">
+  <span class="box-title">🔬 Materiales y colores</span>
+  <ul>
+    <li><strong>GaAsP</strong> (Arseniuro de galio-fósforo): Rojo, naranja, amarillo</li>
+    <li><strong>InGaN</strong> (Nitruro de indio-galio): Azul, verde, blanco</li>
+    <li><strong>AlGaInP</strong> (Aluminio-galio-indio-fósforo): Rojo, ámbar, amarillo</li>
+    <li><strong>GaP</strong> (Fosfuro de galio): Verde (antiguo)</li>
+  </ul>
+</div>
+
+<h3>Curva V-I del LED</h3>
+<p>A diferencia de una resistencia, el LED tiene una <strong>curva exponencial</strong> de corriente vs. tensión. Pequeños cambios en $V_f$ producen grandes cambios en $I_f$. Por eso <strong>nunca se conecta un LED directamente a una fuente de voltaje</strong> sin limitar la corriente.</p>
+
+<div class="diagram">
+  <svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="20" width="320" height="220" fill="white" stroke="#ccc"/>
+    <line x1="60" y1="240" x2="380" y2="240" stroke="#333" stroke-width="2"/>
+    <line x1="60" y1="20" x2="60" y2="240" stroke="#333" stroke-width="2"/>
+    <text x="220" y="270" text-anchor="middle" font-size="12" fill="#333">Voltaje Directo Vf (V)</text>
+    <text x="25" y="130" text-anchor="middle" font-size="12" fill="#333" transform="rotate(-90, 25, 130)">Corriente If (mA)</text>
+    <!-- LED curves -->
+    <path d="M60,235 Q120,235 140,230 Q160,200 180,100 Q200,40 220,25" fill="none" stroke="#d32f2f" stroke-width="2.5"/>
+    <text x="230" y="20" font-size="10" fill="#d32f2f">Rojo</text>
+    <path d="M60,235 Q140,235 170,225 Q190,180 210,80 Q230,30 250,15" fill="none" stroke="#1976d2" stroke-width="2.5"/>
+    <text x="255" y="12" font-size="10" fill="#1976d2">Azul/Blanco</text>
+    <path d="M60,235 Q130,235 155,220 Q175,170 195,70 Q215,25 235,12" fill="none" stroke="#388e3c" stroke-width="2.5"/>
+    <text x="240" y="10" font-size="10" fill="#388e3c">Verde</text>
+    <!-- Voltage marks -->
+    <text x="140" y="255" text-anchor="middle" font-size="9" fill="#666">1.8</text>
+    <text x="200" y="255" text-anchor="middle" font-size="9" fill="#666">2.5</text>
+    <text x="260" y="255" text-anchor="middle" font-size="9" fill="#666">3.0</text>
+    <text x="320" y="255" text-anchor="middle" font-size="9" fill="#666">3.5</text>
+    <line x1="140" y1="240" x2="140" y2="245" stroke="#333"/>
+    <line x1="200" y1="240" x2="200" y2="245" stroke="#333"/>
+    <line x1="260" y1="240" x2="260" y2="245" stroke="#333"/>
+    <line x1="320" y1="240" x2="320" y2="245" stroke="#333"/>
+  </svg>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Punto clave</span>
+  <p>El LED <strong>no tiene resistencia interna fija</strong>. Su comportamiento es no lineal: por debajo de $V_f$ casi no circula corriente, y por encima de $V_f$ la corriente crece exponencialmente. <em>Siempre</em> se debe limitar la corriente.</p>
+</div>
+
+<!-- ================================================================ -->
+<h1 id="cap8-2">8.2 Caída de Tensión Directa ($V_f$) por Color</h1>
+<p>La tensión directa ($V_f$) es el voltaje mínimo necesario para que el LED encienda y conduzca corriente. Depende del material semiconductor y por tanto del color de la luz emitida.</p>
+
+<h3>Tabla de $V_f$ típico por color</h3>
+<table>
+  <tr><th>Color</th><th>Material</th><th>$V_f$ típico (V)</th><th>Rango $V_f$ (V)</th><th>Longitud de onda</th></tr>
+  <tr><td>🔴 Rojo</td><td>GaAsP / AlGaInP</td><td>1.8 – 2.0</td><td>1.6 – 2.2</td><td>620 – 660 nm</td></tr>
+  <tr><td>🟠 Naranja</td><td>AlGaInP</td><td>2.0 – 2.1</td><td>1.9 – 2.2</td><td>590 – 620 nm</td></tr>
+  <tr><td>🟡 Amarillo</td><td>GaAsP / AlGaInP</td><td>2.0 – 2.2</td><td>1.9 – 2.4</td><td>570 – 590 nm</td></tr>
+  <tr><td>🟢 Verde</td><td>InGaN / GaP</td><td>2.2 – 3.5</td><td>2.0 – 3.8</td><td>500 – 570 nm</td></tr>
+  <tr><td>🔵 Azul</td><td>InGaN</td><td>3.0 – 3.6</td><td>2.8 – 4.0</td><td>450 – 500 nm</td></tr>
+  <tr><td>⚪ Blanco</td><td>InGaN + fósforo</td><td>3.0 – 3.6</td><td>2.8 – 4.0</td><td>Espectro completo</td></tr>
+  <tr><td>🟣 Violeta</td><td>InGaN</td><td>3.2 – 3.8</td><td>3.0 – 4.2</td><td>380 – 450 nm</td></tr>
+  <tr><td>🟤 UV</td><td>AlGaN</td><td>3.5 – 4.5</td><td>3.2 – 5.0</td><td>280 – 380 nm</td></tr>
+</table>
+
+<div class="box box-info">
+  <span class="box-title">💡 ¿Por qué los LEDs azul/blanco tienen $V_f$ más alto?</span>
+  <p>El <strong>band gap</strong> (banda prohibida) del InGaN es mayor (~3.4 eV) que el del GaAsP (~1.8 eV). Se necesita más energía para que los electrones crucen la unión y emitan fotones de mayor energía (luz de menor longitud de onda).</p>
+</div>
+
+<h3>Variaciones a tener en cuenta</h3>
+<ul>
+  <li><strong>Tolerancia de fabricación:</strong> Incluso LEDs del mismo lote pueden tener variaciones de ±0.2 V en $V_f$.</li>
+  <li><strong>Temperatura:</strong> $V_f$ disminuye aproximadamente <strong>−2 mV/°C</strong> al aumentar la temperatura.</li>
+  <li><strong>Corriente:</strong> A mayor $I_f$, mayor $V_f$ (aunque el cambio es pequeño, ~0.1 V entre 10 mA y 100 mA).</li>
+</ul>
+
+<!-- ================================================================ -->
+<h1 id="cap8-3">8.3 Cálculo de Resistencia Limitadora</h1>
+<p>La forma más simple de alimentar un LED es mediante una <strong>resistencia en serie</strong> que limita la corriente a un valor seguro.</p>
+
+<h3>Fundamento</h3>
+<p>Por la Ley de Ohm, la resistencia necesaria se calcula restando la tensión del LED de la tensión de alimentación, y dividiendo entre la corriente deseada:</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$R = \frac{V_{in} - V_f}{I_f}$</strong></div>
+  <div class="label">$R$ = resistencia (Ω), $V_{in}$ = tensión de alimentación (V), $V_f$ = tensión directa del LED (V), $I_f$ = corriente directa deseada (A)</div>
+</div>
+
+<h3>Ejemplo práctico</h3>
+<p><strong>Problema:</strong> Alimentar un LED rojo ($V_f = 2.0$ V) desde una fuente de 5 V, con $I_f = 20$ mA.</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$R = \frac{5\text{ V} - 2.0\text{ V}}{0.020\text{ A}} = \frac{3.0}{0.020} = 150\ \Omega$</strong></div>
+</div>
+
+<h3>Potencia de la resistencia</h3>
+<p>La resistencia disipa potencia en forma de calor:</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$P_R = I_f^2 \times R = (V_{in} - V_f) \times I_f$</strong></div>
+</div>
+
+<p>En el ejemplo: $P_R = 3.0 \times 0.020 = 0.06$ W → usar resistencia de 1/8 W (0.125 W) o 1/4 W.</p>
+
+<h3>Caso de LEDs en serie</h3>
+<p>Cuando varios LEDs están en serie, sus $V_f$ se suman:</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$R = \frac{V_{in} - n \times V_f}{I_f}$</strong></div>
+  <div class="label">$n$ = número de LEDs en serie</div>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Condición de diseño</span>
+  <p>Se requiere $V_{in} > n \times V_f$. Si $V_{in}$ está muy cerca de $n \times V_f$, la resistencia será muy pequeña y pequeñas variaciones causarán grandes cambios en corriente. Si $V_{in} \leq n \times V_f$, <strong>los LEDs no encenderán</strong>.</p>
+</div>
+
+<h3>Caso de LEDs en paralelo</h3>
+<p><strong>No se recomienda</strong> conectar LEDs en paralelo con una sola resistencia, porque las diferencias en $V_f$ hacen que algunos LEDs absorban más corriente que otros (<em>current hogging</em>). Si se debe hacer, usar una resistencia individual por LED.</p>
+
+<div class="diagram">
+  <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Serie circuit -->
+    <text x="120" y="20" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">LEDs en Serie</text>
+    <line x1="40" y1="100" x2="80" y2="100" stroke="#333" stroke-width="1.5"/>
+    <rect x="80" y="90" width="20" height="20" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"/>
+    <line x1="100" y1="100" x2="130" y2="100" stroke="#333" stroke-width="1.5"/>
+    <rect x="130" y="90" width="20" height="20" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"/>
+    <line x1="150" y1="100" x2="180" y2="100" stroke="#333" stroke-width="1.5"/>
+    <rect x="180" y="90" width="20" height="20" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"/>
+    <line x1="200" y1="100" x2="230" y2="100" stroke="#333" stroke-width="1.5"/>
+    <rect x="230" y="85" width="40" height="30" fill="none" stroke="#1565c0" stroke-width="1.5" rx="3"/>
+    <text x="250" y="105" text-anchor="middle" font-size="9" fill="#1565c0">R</text>
+    <line x1="270" y1="100" x2="300" y2="100" stroke="#333" stroke-width="1.5"/>
+    <line x1="300" y1="100" x2="300" y2="50" stroke="#333" stroke-width="1.5"/>
+    <line x1="300" y1="50" x2="40" y2="50" stroke="#333" stroke-width="1.5"/>
+    <line x1="40" y1="50" x2="40" y2="100" stroke="#333" stroke-width="1.5"/>
+    <text x="170" y="45" text-anchor="middle" font-size="10" fill="#1565c0">+Vin</text>
+    <text x="170" y="130" text-anchor="middle" font-size="10" fill="#666">GND</text>
+    <!-- Current arrow -->
+    <path d="M150,75 L170,75" stroke="#e65100" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="180" y="72" font-size="9" fill="#e65100">If</text>
+    <defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#e65100"/></marker></defs>
+  </svg>
+</div>
+
+<!-- ================================================================ -->
+<h1 id="cap8-4">8.4 Teoría de Dimming por PWM</h1>
+<p>El <strong>Pulse Width Modulation</strong> (PWM) es la técnica preferida para controlar el brillo de LEDs, ya que mantiene el color constante y es altamente eficiente.</p>
+
+<h3>Principio de funcionamiento</h3>
+<p>Se aplica una <strong>onda cuadrada</strong> al LED: encendido (ON) y apagado (OFF) a alta frecuencia. El ojo percibe el <strong>brillo promedio</strong>, no los parpadeos individuales.</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$\text{Brillo percibido} = D \times I_{f,\text{max}}$</strong></div>
+  <div class="label">$D$ = duty cycle (0 a 1, o 0% a 100%)</div>
+</div>
+
+<div class="diagram">
+  <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 50% duty -->
+    <line x1="30" y1="50" x2="230" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <line x1="30" y1="30" x2="30" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <line x1="30" y1="30" x2="80" y2="30" stroke="#1565c0" stroke-width="2"/>
+    <line x1="80" y1="30" x2="80" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <line x1="80" y1="50" x2="130" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <line x1="130" y1="30" x2="130" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <line x1="130" y1="30" x2="180" y2="30" stroke="#1565c0" stroke-width="2"/>
+    <line x1="180" y1="30" x2="180" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <line x1="180" y1="50" x2="230" y2="50" stroke="#1565c0" stroke-width="2"/>
+    <text x="130" y="20" text-anchor="middle" font-size="10" fill="#1565c0">D = 50%</text>
+    <!-- 25% duty -->
+    <line x1="30" y1="100" x2="230" y2="100" stroke="#1565c0" stroke-width="2"/>
+    <line x1="30" y1="80" x2="30" y2="100" stroke="#1565c0" stroke-width="2"/>
+    <line x1="30" y1="80" x2="55" y2="80" stroke="#1565c0" stroke-width="2"/>
+    <line x1="55" y1="80" x2="55" y2="100" stroke="#1565c0" stroke-width="2"/>
+    <line x1="55" y1="100" x2="230" y2="100" stroke="#1565c0" stroke-width="2"/>
+    <text x="130" y="70" text-anchor="middle" font-size="10" fill="#1565c0">D = 25%</text>
+    <!-- 75% duty -->
+    <line x1="30" y1="150" x2="230" y2="150" stroke="#1565c0" stroke-width="2"/>
+    <line x1="30" y1="130" x2="30" y2="150" stroke="#1565c0" stroke-width="2"/>
+    <line x1="30" y1="130" x2="155" y2="130" stroke="#1565c0" stroke-width="2"/>
+    <line x1="155" y1="130" x2="155" y2="150" stroke="#1565c0" stroke-width="2"/>
+    <line x1="155" y1="150" x2="230" y2="150" stroke="#1565c0" stroke-width="2"/>
+    <text x="130" y="120" text-anchor="middle" font-size="10" fill="#1565c0">D = 75%</text>
+    <!-- Axis -->
+    <line x1="30" y1="170" x2="230" y2="170" stroke="#999" stroke-width="1"/>
+    <text x="235" y="174" font-size="9" fill="#999">t →</text>
+  </svg>
+</div>
+
+<h3>Frecuencia de conmutación</h3>
+<p>La frecuencia debe ser lo suficientemente alta para evitar el <strong>parpadeo visible</strong> (flicker):</p>
+
+<div class="box box-success">
+  <span class="box-title">✅ Regla de oro</span>
+  <p><strong>$f_{PWM} > 100$ Hz</strong> para evitar percepción de parpadeo. En la práctica:</p>
+  <ul>
+    <li><strong>Iluminación interior:</strong> 200 Hz – 1 kHz</li>
+    <li><strong>Iluminación exterior/automotriz:</strong> 1 kHz – 5 kHz</li>
+    <li><strong>Evitación de banding (cámaras):</strong> > 20 kHz</li>
+    <li><strong>Audio (evitar ruido):strong> > 20 kHz</strong></li>
+  </ul>
+</div>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Frecuencia demasiado alta</span>
+  <p>Frecuencias muy altas (>20 kHz) pueden causar problemas:</p>
+  <ul>
+    <li>Mayor pérdida de conmutación en el MOSFET driver</li>
+    <li>Interferencia electromagnética (EMI)</li>
+    <li>Necesidad de drivers más rápidos y costosos</li>
+  </ul>
+</div>
+
+<h3>Implementación con microcontrolador (Arduino)</h3>
+<pre><code>// PWM dimming en Arduino
+int ledPin = 9;  // Pin PWM
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  analogWriteResolution(10);  // 10 bits (0-1023)
+}
+
+void loop() {
+  for (int duty = 0; duty <= 255; duty++) {
+    analogWrite(ledPin, duty);  // 0=apagado, 255=máximo
+    delay(10);
+  }
+}</code></pre>
+
+<h3>Implementación con MOSFET driver</h3>
+<p>Para LEDs de potencia, se usa un MOSFET como interruptor controlado por la señal PWM:</p>
+
+<div class="diagram">
+  <svg viewBox="0 0 450 180" xmlns="http://www.w3.org/2000/svg">
+    <line x1="30" y1="90" x2="80" y2="90" stroke="#333" stroke-width="1.5"/>
+    <rect x="80" y="80" width="20" height="20" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"/>
+    <line x1="100" y1="90" x2="130" y2="90" stroke="#333" stroke-width="1.5"/>
+    <rect x="130" y="75" width="40" height="30" fill="none" stroke="#1565c0" stroke-width="1.5" rx="3"/>
+    <text x="150" y="95" text-anchor="middle" font-size="9" fill="#1565c0">R</text>
+    <line x1="170" y1="90" x2="200" y2="90" stroke="#333" stroke-width="1.5"/>
+    <!-- MOSFET -->
+    <line x1="200" y1="90" x2="230" y2="90" stroke="#333" stroke-width="1.5"/>
+    <line x1="230" y1="60" x2="230" y2="120" stroke="#333" stroke-width="2"/>
+    <line x1="230" y1="60" x2="260" y2="60" stroke="#333" stroke-width="1.5"/>
+    <line x1="230" y1="120" x2="260" y2="120" stroke="#333" stroke-width="1.5"/>
+    <line x1="230" y1="90" x2="215" y2="90" stroke="#333" stroke-width="1.5"/>
+    <polygon points="215,85 210,90 215,95" fill="#333"/>
+    <line x1="260" y1="60" x2="260" y2="120" stroke="#333" stroke-width="1.5"/>
+    <line x1="260" y1="90" x2="290" y2="90" stroke="#333" stroke-width="1.5"/>
+    <line x1="290" y1="90" x2="290" y2="140" stroke="#333" stroke-width="1.5"/>
+    <line x1="290" y1="140" x2="30" y2="140" stroke="#333" stroke-width="1.5"/>
+    <line x1="30" y1="140" x2="30" y2="90" stroke="#333" stroke-width="1.5"/>
+    <!-- Gate -->
+    <line x1="230" y1="90" x2="230" y2="30" stroke="#333" stroke-width="1.5"/>
+    <line x1="230" y1="30" x2="320" y2="30" stroke="#333" stroke-width="1.5"/>
+    <text x="325" y="35" font-size="10" fill="#e65100">PWM</text>
+    <!-- Labels -->
+    <text x="245" y="55" font-size="9" fill="#333">D</text>
+    <text x="245" y="135" font-size="9" fill="#333">S</text>
+    <text x="215" y="25" font-size="9" fill="#333">G</text>
+    <text x="110" y="75" font-size="9" fill="#1565c0">Vin</text>
+    <text x="270" y="155" font-size="9" fill="#666">GND</text>
+    <!-- Arrow -->
+    <line x1="150" y1="105" x2="150" y2="115" stroke="#e65100" stroke-width="1.5"/>
+    <text x="155" y="112" font-size="9" fill="#e65100">If</text>
+  </svg>
+</div>
+
+<!-- ================================================================ -->
+<h1 id="cap8-5">8.5 Drivers de Corriente Constante</h1>
+<p>Para aplicaciones serias de iluminación LED, la resistencia limitadora es ineficiente e imprecisa. Se usan <strong>drivers de corriente constante (CC)</strong> que ajustan automáticamente el voltaje para mantener $I_f$ fija.</p>
+
+<h3>8.5.1 LM317 como Fuente de Corriente Constante</h3>
+<p>El LM317 es un regulador lineal ajustable que puede configurarse como fuente de corriente constante con solo una resistencia.</p>
+
+<div class="diagram">
+  <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+    <line x1="30" y1="100" x2="80" y2="100" stroke="#333" stroke-width="1.5"/>
+    <!-- LM317 box -->
+    <rect x="80" y="60" width="120" height="80" fill="#e3f2fd" stroke="#1565c0" stroke-width="2" rx="4"/>
+    <text x="140" y="95" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">LM317</text>
+    <text x="140" y="112" text-anchor="middle" font-size="9" fill="#666">ADJ  OUT</text>
+    <!-- OUT pin -->
+    <line x1="200" y1="100" x2="240" y2="100" stroke="#333" stroke-width="1.5"/>
+    <!-- ADJ pin -->
+    <line x1="140" y1="60" x2="140" y2="40" stroke="#333" stroke-width="1.5"/>
+    <line x1="140" y1="40" x2="240" y2="40" stroke="#333" stroke-width="1.5"/>
+    <line x1="240" y1="40" x2="240" y2="100" stroke="#333" stroke-width="1.5"/>
+    <!-- Resistor -->
+    <rect x="240" y="85" width="40" height="30" fill="none" stroke="#e65100" stroke-width="1.5" rx="3"/>
+    <text x="260" y="105" text-anchor="middle" font-size="9" fill="#e65100">R_set</text>
+    <line x1="280" y1="100" x2="320" y2="100" stroke="#333" stroke-width="1.5"/>
+    <!-- LED -->
+    <rect x="320" y="90" width="20" height="20" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"/>
+    <line x1="340" y1="100" x2="370" y2="100" stroke="#333" stroke-width="1.5"/>
+    <line x1="370" y1="100" x2="370" y2="150" stroke="#333" stroke-width="1.5"/>
+    <line x1="370" y1="150" x2="30" y2="150" stroke="#333" stroke-width="1.5"/>
+    <line x1="30" y1="150" x2="30" y2="100" stroke="#333" stroke-width="1.5"/>
+    <!-- Labels -->
+    <text x="55" y="95" font-size="9" fill="#1565c0">Vin</text>
+    <text x="345" y="95" font-size="9" fill="#333">LED</text>
+    <text x="200" y="170" text-anchor="middle" font-size="9" fill="#666">GND</text>
+    <!-- Current arrow -->
+    <line x1="300" y1="115" x2="300" y2="130" stroke="#e65100" stroke-width="1.5"/>
+    <text x="305" y="125" font-size="9" fill="#e65100">I_out</text>
+  </svg>
+</div>
+
+<h3>Principio de funcionamiento</h3>
+<p>El LM317 mantiene una tensión de referencia fija de <strong>$V_{ref} = 1.25$ V</strong> entre los pines OUT y ADJ. La corriente de salida es:</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$I_{out} = \frac{V_{ref}}{R_{set}} = \frac{1.25\text{ V}}{R_{set}}$</strong></div>
+</div>
+
+<h3>Ejemplo de diseño</h3>
+<p><strong>Objetivo:</strong> Corriente constante de 350 mA para un LED de 1 W.</p>
+
+<div class="formula">
+  <div class="formula-box"><strong>$R_{set} = \frac{1.25}{0.350} = 3.57\ \Omega \rightarrow 3.3\ \Omega\ (\text{valor comercial})$$</strong></div>
+</div>
+
+<p>Potencia de $R_{set}$: $P = I^2 \times R = 0.350^2 \times 3.3 = 0.40$ W → usar resistencia de <strong>1 W</strong>.</p>
+
+<div class="box box-warning">
+  <span class="box-title">⚠️ Limitaciones del LM317 como CC</span>
+  <ul>
+    <li><strong>Disipación térmica:</strong> $P_{LM317} = (V_{in} - V_{LED}) \times I_{out}$. Si $V_{in} = 12$ V y $V_{LED} = 3.5$ V, $P = (12 - 3.5) \times 0.350 = 3.0$ W → necesita disipador.</li>
+    <li><strong>Corriente máxima:</strong> 1.5 A (con disipador adecuado).</li>
+    <li><strong>Tensión mínima de operación:</strong> $V_{in} \geq V_{LED} + 3$ V (dropout).</li>
+    <li><strong>Eficiencia baja:</strong> La energía excedente se disipa como calor.</li>
+  </ul>
+</div>
+
+<h3>8.5.2 Driver Buck (Step-Down) para LEDs</h3>
+<p>Para alta eficiencia, se usa una <strong>topología buck</strong> con control de corriente. Convierte un voltaje de entrada mayor a la tensión necesaria del LED con mínimas pérdidas.</p>
+
+<div class="diagram">
+  <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- Vin -->
+    <line x1="30" y1="60" x2="80" y2="60" stroke="#333" stroke-width="1.5"/>
+    <text x="55" y="50" text-anchor="middle" font-size="9" fill="#1565c0">Vin</text>
+    <!-- IC -->
+    <rect x="80" y="40" width="140" height="100" fill="#e3f2fd" stroke="#1565c0" stroke-width="2" rx="4"/>
+    <text x="150" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">Buck</text>
+    <text x="150" y="97" text-anchor="middle" font-size="9" fill="#666">LED Driver IC</text>
+    <text x="150" y="115" text-anchor="middle" font-size="8" fill="#666">ej: LM3409, TPS92515</text>
+    <!-- SW output -->
+    <line x1="220" y1="70" x2="260" y2="70" stroke="#333" stroke-width="1.5"/>
+    <!-- Inductor -->
+    <path d="M260,70 Q270,50 280,70 Q290,90 300,70 Q310,50 320,70 Q330,90 340,70" fill="none" stroke="#333" stroke-width="1.5"/>
+    <text x="300" y="50" text-anchor="middle" font-size="9" fill="#666">L</text>
+    <line x1="340" y1="70" x2="380" y2="70" stroke="#333" stroke-width="1.5"/>
+    <!-- LED -->
+    <rect x="380" y="60" width="20" height="20" fill="#ff5252" stroke="#b71c1c" stroke-width="1.5"/>
+    <line x1="400" y1="70" x2="430" y2="70" stroke="#333" stroke-width="1.5"/>
+    <!-- Sense resistor -->
+    <rect x="430" y="55" width="30" height="30" fill="none" stroke="#e65100" stroke-width="1.5" rx="3"/>
+    <text x="445" y="75" text-anchor="middle" font-size="8" fill="#e65100">R_sense</text>
+    <line x1="460" y1="70" x2="460" y2="170" stroke="#333" stroke-width="1.5"/>
+    <line x1="460" y1="170" x2="30" y2="170" stroke="#333" stroke-width="1.5"/>
+    <line x1="30" y1="170" x2="30" y2="60" stroke="#333" stroke-width="1.5"/>
+    <!-- CS pin -->
+    <line x1="445" y1="70" x2="445" y2="130" stroke="#333" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="445" y1="130" x2="150" y2="130" stroke="#333" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="150" y1="130" x2="150" y2="140" stroke="#333" stroke-width="1.5"/>
+    <text x="155" y="150" font-size="8" fill="#666">CS</text>
+    <!-- GND -->
+    <line x1="150" y1="140" x2="150" y2="170" stroke="#333" stroke-width="1.5"/>
+    <text x="150" y="185" text-anchor="middle" font-size="9" fill="#666">GND</text>
+  </svg>
+</div>
+
+<h3>Funcionamiento del Buck LED Driver</h3>
+<ol class="steps">
+  <li><strong>El IC mide la corriente</strong> a través de $R_{sense}$: $V_{sense} = I_{LED} \times R_{sense}$</li>
+  <li><strong>Compara</strong> $V_{sense}$ con una referencia interna (típicamente 100–200 mV)</li>
+  <li><strong>Controla el duty cycle</strong> del MOSFET interno para mantener $I_{LED}$ constante</li>
+  <li><strong>El inductor</strong> suaviza la corriente, y el capacitor de salida filtra el rizado</li>
+</ol>
+
+<div class="formula">
+  <div class="formula-box"><strong>$I_{LED} = \frac{V_{sense}}{R_{sense}}$</strong></div>
+  <div class="label">$V_{sense}$ = tensión de referencia del driver (típ. 100–200 mV)</div>
+</div>
+
+<h3>Comparación: Resistencia vs LM317 vs Buck</h3>
+<table>
+  <tr><th>Método</th><th>Eficiencia</th><th>Complejidad</th><th>Rizado de corriente</th><th>Aplicación</th></tr>
+  <tr><td>Resistencia</td><td>Baja (50-70%)</td><td>Muy baja</td><td>Alto</td><td>LEDs de señal, indicadores</td></tr>
+  <tr><td>LM317 CC</td><td>Media (60-80%)</td><td>Baja</td><td>Muy bajo</td><td>LEDs de 0.5-2 W, prototipos</td></tr>
+  <tr><td>Buck Driver</td><td>Alta (85-95%)</td><td>Media-alta</td><td>Bajo (con filtro)</td><td>LEDs de potencia, iluminación</td></tr>
+</table>
+
+<h3>ICs comunes para Buck LED Drivers</h3>
+<table>
+  <tr><th>IC</th><th>Rango Vin</th><th>Iout máx</th><th>Característica</th></tr>
+  <tr><td>LM3409</td><td>4.5 – 75 V</td><td>Externa</td><td>Buck, control externo</td></tr>
+  <tr><td>TPS92515</td><td>4.5 – 48 V</td><td>1.5 A</td><td>Buck integrado, dimming PWM</td></tr>
+  <tr><td>AL8805</td><td>3.3 – 24 V</td><td>1.5 A</td><td>Buck, bajo costo</td></tr>
+  <tr><td>PT4115</td><td>6 – 30 V</td><td>1.2 A</td><td>Buck, muy popular en módulos</td></tr>
+  <tr><td>MT7201</td><td>6 – 30 V</td><td>1.5 A</td><td>Buck, regulable</td></tr>
+</table>
+
+<!-- ================================================================ -->
+<h1 id="cap8-6">8.6 Cálculo de Potencia en LEDs</h1>
+<p>Calcular correctamente la potencia consumida por un sistema LED es esencial para dimensionar fuentes, disipadores y protecciones.</p>
+
+<h3>Potencia de un solo LED</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$P_{LED} = V_f \times I_f$</strong></div>
+</div>
+
+<h3>Potencia de un arreglo LED</h3>
+<p>Para $n$ LEDs en serie, todos con la misma $I_f$:</p>
+<div class="formula">
+  <div class="formula-box"><strong>$P_{total} = n \times V_f \times I_f$</strong></div>
+</div>
+
+<p>Para $m$ ramas en paralelo, cada una con $n$ LEDs en serie:</p>
+<div class="formula">
+  <div class="formula-box"><strong>$P_{total} = m \times n \times V_f \times I_f$</strong></div>
+</div>
+
+<h3>Ejemplo: Cálculo de tira LED</h3>
+<p><strong>Datos:</strong> Tira de 60 LEDs blancos ($V_f = 3.2$ V, $I_f = 20$ mA cada uno), configuración: 3 LEDs en serie + resistencia, 20 ramas en paralelo.</p>
+
+<ul>
+  <li>Voltaje por rama: $3 \times 3.2 = 9.6$ V</li>
+  <li>Corriente por rama: 20 mA</li>
+  <li>Corriente total: $20 \times 20\text{ mA} = 400\text{ mA}$</li>
+  <li>Potencia total: $60 \times 3.2 \times 0.020 = 3.84$ W</li>
+</ul>
+
+<h3>Potencia disipada por la resistencia limitadora</h3>
+<p>Si se alimenta desde 12 V:</p>
+<div class="formula">
+  <div class="formula-box"><strong>$P_R = (V_{in} - n \times V_f) \times I_f = (12 - 9.6) \times 0.020 = 0.048\text{ W por rama}$</strong></div>
+</div>
+<p>Potencia total en resistencias: $20 \times 0.048 = 0.96$ W.</p>
+
+<h3>Eficiencia del sistema</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$\eta = \frac{P_{LED}}{P_{total}} = \frac{P_{LED}}{P_{LED} + P_R + P_{driver}}$</strong></div>
+</div>
+
+<div class="box box-info">
+  <span class="box-title">💡 Regla práctica para fuente de alimentación</span>
+  <p>Siempre dimensionar la fuente con un <strong>margen del 20-30%</strong>:</p>
+  <div class="formula-box"><strong>$P_{fuente} = 1.25 \times P_{total}$</strong></div>
+</div>
+
+<!-- ================================================================ -->
+<h1 id="cap8-7">8.7 Consideraciones Térmicas en LEDs de Potencia</h1>
+<p>El calor es el enemigo número uno de los LEDs de potencia. Una gestión térmica inadecuada reduce drásticamente su vida útil y puede causar fallo catastrófico.</p>
+
+<h3>¿Por qué los LEDs generan calor?</h3>
+<p>A diferencia de las bombillas incandescentes, los LEDs convierten la mayor parte de la energía en luz visible, pero <strong>no son 100% eficientes</strong>:</p>
+<ul>
+  <li>LEDs de iluminación: <strong>30-50%</strong> eficiencia (el resto es calor)</li>
+  <li>LEDs de alta potencia (1W+): ~<strong>35-45%</strong> se convierte en luz</li>
+  <li>El calor se genera en la unión semiconductor (no es visible)</li>
+</ul>
+
+<h3>Parámetros térmicos clave</h3>
+<table>
+  <tr><th>Parámetro</th><th>Símbolo</th><th>Descripción</th></tr>
+  <tr><td>Temperatura de unión</td><td>$T_j$</td><td>Temperatura en el semiconductor (máx. típico: 125-150°C)</td></tr>
+  <tr><td>Temperatura ambiente</td><td>$T_a$</td><td>Temperatura del entorno</td></tr>
+  <tr><td>Resistencia térmica</td><td>$R_{\theta JA}$</td><td>°C/W desde unión a ambiente</td></tr>
+  <tr><td>Resistencia unión-carcasa</td><td>$R_{\theta JC}$</td><td>°C/W desde unión a la base del LED</td></tr>
+  <tr><td>Resistencia carca-disipador</td><td>$R_{\theta CS}$</td><td>°C/W desde carca al disipador (con pasta)</td></tr>
+</table>
+
+<h3>Cálculo de temperatura de unión</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$T_j = T_a + P_{LED} \times R_{\theta JA}$</strong></div>
+</div>
+
+<p>Con disipador:</p>
+<div class="formula">
+  <div class="formula-box"><strong>$T_j = T_a + P_{LED} \times (R_{\theta JC} + R_{\theta CS} + R_{\theta SA})$</strong></div>
+  <div class="label">$R_{\theta SA}$ = resistencia térmica del disipador</div>
+</div>
+
+<h3>Ejemplo práctico</h3>
+<p><strong>LED de 3 W</strong> con $V_f = 3.4$ V, $I_f = 900$ mA, montado en disipador con $R_{\theta SA} = 8$ °C/W:</p>
+<ul>
+  <li>$P_{LED} = 3.4 \times 0.900 = 3.06$ W (disipada como calor: ~2.0 W)</li>
+  <li>$R_{\theta JC} = 3$ °C/W (del datasheet)</li>
+  <li>$R_{\theta CS} = 0.5$ °C/W (con pasta térmica)</li>
+  <li>$T_a = 25$ °C</li>
+</ul>
+
+<div class="formula">
+  <div class="formula-box"><strong>$T_j = 25 + 2.0 \times (3 + 0.5 + 8) = 25 + 23 = 48°C$</strong></div>
+</div>
+
+<p>✅ $T_j = 48°C < 125°C$ → Diseño seguro.</p>
+
+<h3>Efecto de la temperatura en el LED</h3>
+<div class="box box-danger">
+  <span class="box-title">🔥 Consecuencias de alta $T_j$</span>
+  <ul>
+    <li><strong>Reducción de luminosidad:</strong> -10% a -30% por cada 50°C de aumento</li>
+    <li><strong>Desplazamiento de color:</strong> Cambio en la temperatura de color (especialmente LEDs blancos)</li>
+    <li><strong>Reducción de vida útil:</strong> La vida útil se reduce a la mitad por cada 10-15°C de aumento</li>
+    <li><strong>Fallo catastrófico:</strong> Si se supera $T_{j,max}$, degradación irreversible</li>
+  </ul>
+</div>
+
+<h3>Regla de vida útil</h3>
+<div class="formula">
+  <div class="formula-box"><strong>$\text{Vida útil} \propto e^{-k \cdot T_j}$</strong></div>
+  <div class="label">Relación exponencial: menor $T_j$ = mayor vida</div>
+</div>
+
+<h3>Guía de diseño térmico</h3>
+<ol class="steps">
+  <li><strong>Calcular potencia disipada:</strong> $P_{diss} = P_{elec} - P_{luz}$ (aprox. 65-70% de $P_{elec}$)</li>
+  <li><strong>Determinar $T_{j,max}$</strong> del datasheet (típicamente 125°C)</li>
+  <li><strong>Calcular resistencia térmica máxima del disipador:</strong></li>
+</ol>
+
+<div class="formula">
+  <div class="formula-box"><strong>$R_{\theta SA,max} = \frac{T_{j,max} - T_a}{P_{diss}} - (R_{\theta JC} + R_{\theta CS})$</strong></div>
+</div>
+
+<h3>Soluciones de disipación</h3>
+<table>
+  <tr><th>Solución</th><th>$R_{\theta SA}$ típica</th><th>Potencia</th><th>Aplicación</th></tr>
+  <tr><td>PCB cobre (grande)</td><td>20-40 °C/W</td><td>< 1 W</td><td>LEDs señal</td></tr>
+  <tr><td>Disipador pequeño adhesivo</td><td>10-20 °C/W</td><td>1-3 W</td><td>LEDs 1-3 W</td></tr>
+  <tr><td>Disipador extruido</td><td>3-10 °C/W</td><td>3-10 W</td><td>LEDs 3-10 W</td></tr>
+  <tr><td>Disipador + ventilador</td><td>1-5 °C/W</td><td>10-50 W</td><td>LEDs alta potencia</td></tr>
+  <tr><td>Heat pipe + aletas</td><td>0.5-2 °C/W</td><td>50-200 W</td><td>Iluminación industrial</td></tr>
+</table>
+
+<div class="box box-success">
+  <span class="box-title">✅ Buenas prácticas térmicas</span>
+  <ul>
+    <li>Usar <strong>pasta térmica</strong> o pads térmicos entre LED y disipador</li>
+    <li>Asegurar <strong>buen contacto</strong> (apriete uniforme de tornillos)</li>
+    <li>Montar LEDs con <strong>espaciado suficiente</strong> para evitar interferencia térmica</li>
+    <li>Considerar <strong>convección natural</strong> (disipador vertical)</li>
+    <li>En exteriores, considerar <strong>radiación solar</strong> como carga térmica adicional</li>
+  </ul>
+</div>
+
+<h3>LEDs COB (Chip-on-Board)</h3>
+<p>Los LEDs COB montan múltiples dies directamente sobre un sustrato, logrando alta densidad luminosa. Requieren especial atención térmica:</p>
+<ul>
+  <li>$R_{\theta JC}$ muy bajo (~1-2 °C/W)</li>
+  <li>Necesitan disipador de gran superficie</li>
+  <li>Sustrato de cobre o aluminio para mejor conducción</li>
+</ul>
+
+<!-- ================================================================ -->
+<h1>Resumen del Capítulo 8</h1>
+<table>
+  <tr><th>Concepto</th><th>Fórmula / Regla</th></tr>
+  <tr><td>Resistencia limitadora</td><td>$R = \frac{V_{in} - V_f}{I_f}$</td></tr>
+  <tr><td>LEDs en serie</td><td>$R = \frac{V_{in} - n \times V_f}{I_f}$</td></tr>
+  <tr><td>Potencia del LED</td><td>$P = V_f \times I_f$</td></tr>
+  <tr><td>LM317 como CC</td><td>$I_{out} = \frac{1.25}{R_{set}}$</td></tr>
+  <tr><td>Buck driver</td><td>$I_{LED} = \frac{V_{sense}}{R_{sense}}$</td></tr>
+  <tr><td>PWM dimming</td><td>$f_{PWM} > 100$ Hz</td></tr>
+  <tr><td>Temperatura de unión</td><td>$T_j = T_a + P \times R_{\theta JA}$</td></tr>
+  <tr><td>Fuente de alimentación</td><td>$P_{fuente} = 1.25 \times P_{total}$</td></tr>
+</table>
+
+</body>
+</html>
